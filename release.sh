@@ -1,0 +1,1 @@
+docker build --label version=v0.0.12 -t docker-glq-nodemanager:v0.0.12 .
