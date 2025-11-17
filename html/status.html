@@ -204,9 +204,14 @@
                             <span class="mdc-button__label">View Peers</span>
                         </button>
                     </td>
-                    <td colspan="2">
+                    <td colspan="1">
                         <button class="mdc-button mdc-button--raised" onclick="showSnapshotsModal('node1')">
                             <span class="mdc-button__label">Snapshots</span>
+                        </button>
+                    </td>
+                    <td colspan="1">
+                        <button class="mdc-button mdc-button--raised" onclick="showRollbackModal('node1')" style="background-color: #ff9800;">
+                            <span class="mdc-button__label">⚠️ Rollback</span>
                         </button>
                     </td>
                 </tr>
@@ -270,9 +275,14 @@
                             <span class="mdc-button__label">View Peers</span>
                         </button>
                     </td>
-                    <td colspan="2">
+                    <td colspan="1">
                         <button class="mdc-button mdc-button--raised" onclick="showSnapshotsModal('node2')">
                             <span class="mdc-button__label">Snapshots</span>
+                        </button>
+                    </td>
+                    <td colspan="1">
+                        <button class="mdc-button mdc-button--raised" onclick="showRollbackModal('node2')" style="background-color: #ff9800;">
+                            <span class="mdc-button__label">⚠️ Rollback</span>
                         </button>
                     </td>
                 </tr>
@@ -401,6 +411,50 @@
                     <h3>Available Snapshots</h3>
                     <div id="snapshots-list">
                         <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rollback Modal -->
+        <div id="rollbackModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeRollbackModal()">&times;</span>
+                <h2 id="rollback-modal-title" style="color: #ff9800;">⚠️ Rollback Node</h2>
+                
+                <div style="margin: 20px 0; padding: 20px; background: rgba(255, 152, 0, 0.1); border: 2px solid #ff9800; border-radius: 8px;">
+                    <h3 style="color: #ff9800; margin-top: 0;">⚠️ WARNING - IRREVERSIBLE ACTION</h3>
+                    <p style="font-size: 16px; line-height: 1.6;">
+                        You are about to perform a <strong>rollback of 1 block backwards</strong> on this node.
+                    </p>
+                    <div style="background: rgba(255, 0, 0, 0.2); padding: 15px; border-left: 4px solid #ff0000; margin: 15px 0;">
+                        <h4 style="color: #ff5555; margin-top: 0;">⚠️ Risks and Consequences:</h4>
+                        <ul style="line-height: 1.8; color: #ffcccc;">
+                            <li><strong>This action is IRREVERSIBLE</strong> - you will not be able to undo this operation</li>
+                            <li>The last block of the blockchain will be <strong>permanently deleted</strong></li>
+                            <li>All transactions in the deleted block will be <strong>lost</strong></li>
+                            <li>The node will need to be <strong>restarted</strong> after the rollback</li>
+                            <li>May cause <strong>synchronization issues</strong> with other nodes</li>
+                            <li>Risk of <strong>fork</strong> if other nodes do not perform the rollback</li>
+                        </ul>
+                    </div>
+                    <p style="font-size: 14px; color: #ffaa00; margin-top: 15px;">
+                        ℹ️ <strong>Recommendation:</strong> Make sure you have created a snapshot before proceeding with the rollback.
+                    </p>
+                </div>
+
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; text-align: center;">
+                    <p style="font-size: 14px; margin-bottom: 20px;">
+                        Are you sure you want to continue with the rollback?
+                    </p>
+                    <button class="btn-file" onclick="executeRollback()" id="execute-rollback-btn" style="background: #ff5555; font-size: 16px; padding: 15px 30px;">
+                        🔄 Rollback of 1 Block
+                    </button>
+                    <button class="btn-file secondary" onclick="closeRollbackModal()" style="background: #666; margin-left: 10px; font-size: 16px; padding: 15px 30px;">
+                        ❌ Cancel
+                    </button>
+                    <div id="rollback-status" style="margin-top: 15px; display: none;">
+                        <div style="color: #4CAF50;" id="rollback-status-message">Executing rollback...</div>
                     </div>
                 </div>
             </div>
@@ -1289,6 +1343,74 @@
                 document.getElementById('snapshot-upload-status').style.display = 'none';
                 // Reset file input
                 document.getElementById('snapshot-upload').value = '';
+            }
+
+            // Rollback modal functions
+            let currentRollbackNode = null;
+
+            function showRollbackModal(nodeName) {
+                currentRollbackNode = nodeName;
+                document.getElementById('rollback-modal-title').textContent = `⚠️ Rollback ${nodeName.toUpperCase()}`;
+                document.getElementById('rollbackModal').style.display = 'block';
+                document.getElementById('rollback-status').style.display = 'none';
+                document.getElementById('execute-rollback-btn').disabled = false;
+            }
+
+            function closeRollbackModal() {
+                document.getElementById('rollbackModal').style.display = 'none';
+                currentRollbackNode = null;
+                document.getElementById('rollback-status').style.display = 'none';
+            }
+
+            async function executeRollback() {
+                if (!currentRollbackNode) {
+                    alert('No node selected for rollback');
+                    return;
+                }
+
+                const statusDiv = document.getElementById('rollback-status');
+                const statusMessage = document.getElementById('rollback-status-message');
+                const rollbackBtn = document.getElementById('execute-rollback-btn');
+
+                // Disable button to prevent multiple clicks
+                rollbackBtn.disabled = true;
+                statusDiv.style.display = 'block';
+                statusMessage.textContent = 'Executing rollback...';
+                statusMessage.style.color = '#4CAF50';
+
+                try {
+                    let result = await fetch('/rollback', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            nodeName: currentRollbackNode 
+                        })
+                    });
+                    
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        statusMessage.textContent = '✅ Rollback executed successfully! The node must be restarted.';
+                        statusMessage.style.color = '#4CAF50';
+                        
+                        // Close modal after 3 seconds
+                        setTimeout(() => {
+                            closeRollbackModal();
+                        }, 3000);
+                    } else {
+                        statusMessage.textContent = `❌ Rollback error: ${data.error}`;
+                        statusMessage.style.color = '#ff5555';
+                        rollbackBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Error executing rollback:', error);
+                    statusMessage.textContent = `❌ Rollback error: ${error.message}`;
+                    statusMessage.style.color = '#ff5555';
+                    rollbackBtn.disabled = false;
+                }
             }
 
             async function loadSnapshotsList(nodeName) {
