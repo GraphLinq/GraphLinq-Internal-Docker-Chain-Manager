@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
+const { getNodeData } = require("../utils/node-functions");
 
 const getIP = require('external-ip')({
     replace: true,
@@ -51,9 +52,12 @@ const enodes = (app, environement) => {
             }
         }
 
-        if (app.pairNodes != undefined) {
-            nodes.push(... app.pairNodes);
-        }
+        nodes.push(... getNodeData('node1').staticPeers);
+        nodes.push(... getNodeData('node2').staticPeers);
+
+        // if (app.pairNodes != undefined) {
+        //     nodes.push(... app.pairNodes);
+        // }
 
         res.send(nodes);
     });

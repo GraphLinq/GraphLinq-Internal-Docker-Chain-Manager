@@ -1,4 +1,3 @@
-const { getPairNodeData } = require("../utils/pairnodes");
 const { getNodeData } = require("../utils/node-functions");
 
 const test = (app, environement) => {
@@ -32,7 +31,6 @@ const test = (app, environement) => {
                 ipcLogs: app.node2?.ipcLogs ? app.node2?.ipcLogs : [],
                 ... getNodeData('node2'),
             },
-            pairNodes: getPairNodeData(),
             ethStats: {
                 status: app.ethStats?.status ? app.ethStats?.status : '0',
                 logs: app.ethStats?.logs ? app.ethStats?.logs : [],

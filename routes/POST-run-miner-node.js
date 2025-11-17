@@ -133,12 +133,6 @@ const runMinerNode = (app, environement) => {
             childProcess.kill('SIGTERM');
         }
 
-        app.node1.updatePeers = async () => {
-            for (let pairEnode of app.pairNodes) {
-                await app.node1.ipcExec(`admin.addPeer(\\"${pairEnode.trim()}\\")`, false);
-            }
-        }
-
         setTimeout(async () => {
             fs.rmSync(`./${randomFileName}`);
             let enode = await app.node1.ipcExec('admin.nodeInfo.enode', false);
@@ -146,8 +140,6 @@ const runMinerNode = (app, environement) => {
             if (enode != undefined) {
                 app.node1.enode = enode.replace(/\"/gm, '');
             }
-
-            await app.node1.updatePeers();
         }, 10000);
 
         res.send('');

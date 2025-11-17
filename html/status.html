@@ -269,20 +269,6 @@
                         <input id="node2-ipc-input" type="text" placeholder="admin" style="width:100%; height: 25px;margin-top: 15px;" />
                     </td>
                 </tr>
-
-                <!-- Pair Ids -->
-                <tr>
-                    <td>Main nodes</td>
-                </tr>
-                <tr style="width:100%; height: 200px;">
-                    <td colspan="6" style="width:100%; height: 200px;position: relative;">
-                        <textarea id="textarea-pair-nodes-ids" style="width:100%; height: 200px;"></textarea>
-                    </td>
-                </tr>
-                <tr>
-                    <td><button class="mdc-button mdc-button--raised" onclick="savePairNodes(document.getElementById('textarea-pair-nodes-ids').value, this)">Save</button></td>
-                    <!-- <td><button onclick="applyPairNodes(document.getElementById('textarea-pair-nodes-ids').value)">Apply on Nodes</button></td> -->
-                </tr>
             </table>
         </div>
 
@@ -314,6 +300,17 @@
                         </label>
                         <input type="file" id="static-upload" class="file-upload-input" accept=".json" onchange="uploadStaticPeers(event)">
                     </div>
+                    
+                    <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                        <h4 style="margin-top: 0;">Add Peers Manually</h4>
+                        <textarea id="manual-static-peers" 
+                                  placeholder="Enter enode URLs (one per line)&#10;Example:&#10;enode://abc123...@1.2.3.4:30303&#10;enode://def456...@5.6.7.8:30303"
+                                  style="width: 100%; min-height: 120px; padding: 10px; margin: 10px 0; background: #1a1a2e; color: #e0e0e0; border: 1px solid #333; border-radius: 4px; font-family: monospace; font-size: 13px; resize: vertical;"></textarea>
+                        <button class="btn-file" onclick="addStaticPeersManually()" style="background: #4CAF50;">
+                            ➕ Add Peers
+                        </button>
+                    </div>
+                    
                     <div id="static-peers-list"></div>
                 </div>
 
@@ -512,11 +509,6 @@
                 currentPeerData.node1.trustedPeers = jsonData.node1.trustedPeers || [];
                 currentPeerData.node2.staticPeers = jsonData.node2.staticPeers || [];
                 currentPeerData.node2.trustedPeers = jsonData.node2.trustedPeers || [];
-
-                let pairNodesIds = document.getElementById('textarea-pair-nodes-ids');
-                if (compareIt(pairNodesIds.innerHTML, jsonData.pairNodes.join('\n'))) {
-                    pairNodesIds.innerHTML = jsonData.pairNodes.join('\n');
-                }
 
                 let ethStatsButtonStart = document.getElementById('ethStats-button-start');
                 let ethStatsButtonStop = document.getElementById('ethStats-button-stop');
@@ -720,27 +712,6 @@
                 }
             }
 
-            async function savePairNodes(value, btn) {
-                console.log(value);
-                btn.disabled = true;
-                let result = await fetch('/update-pair-nodes', {
-                        method: 'POST',
-                        headers: {
-                            'Access-Code': password,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            nodes: value.split('\n')
-                        })
-                    });
-                let jsonResult = await result.json();
-
-                let pairNodesIds = document.getElementById('textarea-pair-nodes-ids');
-                pairNodesIds.value = jsonResult.join('\n');
-
-                btn.disabled = false;
-            }
-
             async function generateKeyStore(nodeId) {
                 let privateKeyElement = document.getElementById(`node${nodeId}PrivateKey`);
                 let privatePasswordElement = document.getElementById(`node${nodeId}Password`);
@@ -912,6 +883,111 @@
                 event.target.value = '';
             }
 
+            async function addStaticPeersManually() {
+                if (!currentModalNode) return;
+                
+                const textarea = document.getElementById('manual-static-peers');
+                const inputText = textarea.value.trim();
+                
+                if (!inputText) {
+                    alert('Please enter at least one enode URL');
+                    return;
+                }
+                
+                try {
+                    // Split by newlines and filter out empty lines
+                    const enodes = inputText.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0);
+                    
+                    if (enodes.length === 0) {
+                        alert('Please enter at least one valid enode URL');
+                        return;
+                    }
+                    
+                    // Validate that all entries look like enode URLs
+                    for (let enode of enodes) {
+                        if (!enode.startsWith('enode://')) {
+                            alert(`Invalid enode format: ${enode}\nEnode URLs must start with "enode://"`);
+                            return;
+                        }
+                    }
+                    
+                    // Get existing static peers
+                    const existingPeers = currentPeerData[currentModalNode]?.staticPeers || [];
+                    
+                    // Merge with new peers (avoiding duplicates)
+                    const mergedPeers = [...existingPeers];
+                    for (let enode of enodes) {
+                        if (!mergedPeers.includes(enode)) {
+                            mergedPeers.push(enode);
+                        }
+                    }
+                    
+                    // Upload the merged list
+                    let result = await fetch('/upload-static-peers', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName: currentModalNode, staticPeers: mergedPeers })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        // Update local data
+                        currentPeerData[currentModalNode].staticPeers = data.staticPeers;
+                        // Reload the modal data
+                        await loadPeersData(currentModalNode);
+                        // Clear the textarea
+                        textarea.value = '';
+                    } else {
+                        alert('Error adding static peers: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error adding static peers:', error);
+                    alert('Error adding static peers: ' + error.message);
+                }
+            }
+
+            async function removeStaticPeer(nodeName, peerIndex) {
+                if (!confirm('Are you sure you want to remove this static peer?')) {
+                    return;
+                }
+                
+                try {
+                    // Get existing static peers
+                    const existingPeers = currentPeerData[nodeName]?.staticPeers || [];
+                    
+                    // Remove the peer at the specified index
+                    const updatedPeers = existingPeers.filter((_, index) => index !== peerIndex);
+                    
+                    // Upload the updated list
+                    let result = await fetch('/upload-static-peers', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName: nodeName, staticPeers: updatedPeers })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        // Update local data
+                        currentPeerData[nodeName].staticPeers = data.staticPeers;
+                        // Reload the modal data
+                        await loadPeersData(nodeName);
+                    } else {
+                        alert('Error removing static peer: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error removing static peer:', error);
+                    alert('Error removing static peer: ' + error.message);
+                }
+            }
+
             async function uploadTrustedPeers(event) {
                 if (!currentModalNode) return;
                 
@@ -1026,7 +1102,7 @@
                 
                 if (staticPeers.length > 0) {
                     container.innerHTML = '';
-                    staticPeers.forEach(peerEnode => {
+                    staticPeers.forEach((peerEnode, index) => {
                         const isTrusted = trustedPeers.includes(peerEnode);
                         
                         const peerDiv = document.createElement('div');
@@ -1035,6 +1111,7 @@
                             <div class="peer-enode">${peerEnode}${isTrusted ? ' <span style="color: #4CAF50;">[TRUSTED]</span>' : ''}</div>
                             <div class="peer-actions">
                                 ${!isTrusted ? `<button class="btn-small" onclick="addTrustedPeer('${nodeName}', '${peerEnode}')">Trust</button>` : `<button class="btn-small danger" onclick="removeTrustedPeer('${nodeName}', '${peerEnode}')">Untrust</button>`}
+                                <button class="btn-small danger" onclick="removeStaticPeer('${nodeName}', ${index})" style="margin-left: 5px;">🗑️ Remove</button>
                             </div>
                         `;
                         container.appendChild(peerDiv);

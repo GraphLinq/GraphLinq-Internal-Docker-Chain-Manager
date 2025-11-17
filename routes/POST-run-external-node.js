@@ -126,9 +126,6 @@ const runMinerNode = (app, environement) => {
         }
 
         app.node2.updatePeers = async () => {
-            for (let pairEnode of app.pairNodes) {
-                await app.node2.ipcExec(`admin.addPeer(\\"${pairEnode.trim()}\\")`, false);
-            }
             if (app.node1.enode != undefined) {
                 await app.node2.ipcExec(`admin.addPeer(\\"${app.node1.enode.trim()}\\")`, false);
             }
