@@ -3,6 +3,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
+const { getNodeData } = require('../utils/node-functions');
 
 const createSnapshot = (app, environement) => {
     app.post('/create-snapshot', async (req, res) => {
@@ -14,21 +15,10 @@ const createSnapshot = (app, environement) => {
             }
 
             // Check if node is running to get block height
-            let blockHeight = '0';
-            if (nodeName === 'node1' && app.node1 && app.node1.status === '1') {
-                try {
-                    const blockData = await app.node1.ipcExec('eth.blockNumber', false);
-                    blockHeight = blockData.trim();
-                } catch (e) {
-                    console.error('Error getting block height:', e);
-                }
-            } else if (nodeName === 'node2' && app.node2 && app.node2.status === '1') {
-                try {
-                    const blockData = await app.node2.ipcExec('eth.blockNumber', false);
-                    blockHeight = blockData.trim();
-                } catch (e) {
-                    console.error('Error getting block height:', e);
-                }
+            let metadata = getNodeData(nodeName).metadata;
+
+            if (metadata.blockNumber == 0) {
+                return res.status(400).send({ error: 'no block number found' });
             }
 
             // Create timestamp for filename: 2025-11-15_01-34-29
@@ -39,7 +29,7 @@ const createSnapshot = (app, environement) => {
                 .substring(0, 19);
 
             // Create filename: snapshot_<height>_2025-11-15_01-34-29.tar.gz
-            const filename = `snapshot_${blockHeight}_${timestamp}.tar.gz`;
+            const filename = `snapshot_${metadata.blockNumber}_${timestamp}.tar.gz`;
 
             const nodeDir = path.join(__dirname, '..', 'nodes', nodeName);
             const snapshotsDir = path.join(nodeDir, 'snapshots');
@@ -59,7 +49,15 @@ const createSnapshot = (app, environement) => {
             // Create tar.gz archive of geth directory
             // Exclude private files: nodekey and jwtsecret
             // Using tar -czf to create compressed archive
-            const tarCommand = `cd "${nodeDir}" && tar -czf "${snapshotPath}" --exclude='geth/nodekey' --exclude='geth/jwtsecret' geth`;
+            let filesToInclude = ['geth', 'metadata.json', 'static-nodes.json', 'trusted-nodes.json'];
+            let finalFilesToInclude = [];
+            for (const file of filesToInclude) {
+                if (fs.existsSync(path.join(nodeDir, file))) {
+                    finalFilesToInclude.push(file);
+                }
+            }
+
+            const tarCommand = `cd "${nodeDir}" && tar -czf "${snapshotPath}" --exclude='geth/nodekey' --exclude='geth/jwtsecret' ${finalFilesToInclude.join(" ")}`;
             
             console.log(`Creating snapshot: ${filename}`);
             await execPromise(tarCommand);

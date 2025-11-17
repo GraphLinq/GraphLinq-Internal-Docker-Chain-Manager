@@ -82,8 +82,7 @@ const runMinerNode = (app, environement) => {
              '--txpool.pricelimit=100',
              '--gpo.maxprice=1000000000000000000',
              '--miner.gasprice=100000000',
-             '--graphlinq',
-             '--config=./config.toml'
+             '--graphlinq'
             ],
             { stdio: ['pipe', 'pipe', 'pipe', 'pipe', fs.openSync('./nodes/node1/.error.log', 'w')]}
         );

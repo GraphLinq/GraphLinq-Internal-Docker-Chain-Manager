@@ -12,16 +12,17 @@ const getConnectedPeers = (app, environement) => {
             if (nodeName === 'node1' && app.node1 && app.node1.status === '1') {
                 const peersData = await app.node1.ipcExec('admin.peers', false);
                 try {
-                    peers = JSON.parse(peersData);
+                    peers = eval(peersData).map(peer => peer.enode);
+                    console.log('peers:', peers, 'peersData:', peersData);
                 } catch (e) {
-                    peers = [];
+                    console.error('Error parsing peers data:', e, peersData);
                 }
             } else if (nodeName === 'node2' && app.node2 && app.node2.status === '1') {
                 const peersData = await app.node2.ipcExec('admin.peers', false);
                 try {
-                    peers = JSON.parse(peersData);
+                    peers = eval(peersData).map(peer => peer.enode);
                 } catch (e) {
-                    peers = [];
+                    console.error('Error parsing peers data:', e, peersData);
                 }
             }
 

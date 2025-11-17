@@ -385,6 +385,18 @@
                     </div>
                 </div>
 
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                    <h4 style="margin-top: 0;">Upload Snapshot</h4>
+                    <label for="snapshot-upload" class="btn-file secondary">
+                        📤 Upload Snapshot File
+                    </label>
+                    <input type="file" id="snapshot-upload" class="file-upload-input" accept=".tar.gz,.tgz" onchange="uploadSnapshot(event)">
+                    <div id="snapshot-upload-status" style="margin-top: 10px; display: none;">
+                        <div style="color: #4CAF50;">Uploading snapshot...</div>
+                        <div style="margin-top: 5px; color: #aaa; font-size: 12px;">Please wait while the file is being uploaded.</div>
+                    </div>
+                </div>
+
                 <div style="margin: 20px 0;">
                     <h3>Available Snapshots</h3>
                     <div id="snapshots-list">
@@ -1136,8 +1148,7 @@
                         const trustedPeers = currentPeerData[nodeName].trustedPeers;
                         container.innerHTML = '';
                         
-                        data.peers.forEach(peer => {
-                            const peerEnode = peer.enode || peer.id || 'Unknown';
+                        data.peers.forEach(peerEnode => {
                             const isTrusted = trustedPeers.some(tp => tp.includes(peerEnode.split('@')[0]));
                             
                             const peerDiv = document.createElement('div');
@@ -1275,6 +1286,9 @@
                 document.getElementById('snapshotsModal').style.display = 'none';
                 currentSnapshotNode = null;
                 document.getElementById('snapshot-creation-status').style.display = 'none';
+                document.getElementById('snapshot-upload-status').style.display = 'none';
+                // Reset file input
+                document.getElementById('snapshot-upload').value = '';
             }
 
             async function loadSnapshotsList(nodeName) {
@@ -1306,6 +1320,9 @@
                                     </div>
                                 </div>
                                 <div class="snapshot-actions">
+                                    <button class="btn-small" onclick="applySnapshotConfirm('${nodeName}', '${snapshot.filename}')" style="background: #ff9800;">
+                                        ⚡ Apply
+                                    </button>
                                     <button class="btn-small" onclick="downloadSnapshot('${nodeName}', '${snapshot.filename}')">
                                         📥 Download
                                     </button>
@@ -1388,6 +1405,82 @@
                 } catch (error) {
                     console.error('Error removing snapshot:', error);
                     alert('Error removing snapshot: ' + error.message);
+                }
+            }
+
+            async function uploadSnapshot(event) {
+                if (!currentSnapshotNode) return;
+                
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const statusDiv = document.getElementById('snapshot-upload-status');
+                const uploadLabel = document.querySelector('label[for="snapshot-upload"]');
+                
+                uploadLabel.style.display = 'none';
+                statusDiv.style.display = 'block';
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('snapshot', file);
+                    formData.append('nodeName', currentSnapshotNode);
+
+                    let result = await fetch('/upload-snapshot', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password
+                        },
+                        body: formData
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        alert('Snapshot uploaded successfully!');
+                        await loadSnapshotsList(currentSnapshotNode);
+                    } else {
+                        alert('Error uploading snapshot: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error uploading snapshot:', error);
+                    alert('Error uploading snapshot: ' + error.message);
+                } finally {
+                    uploadLabel.style.display = 'inline-block';
+                    statusDiv.style.display = 'none';
+                    event.target.value = '';
+                }
+            }
+
+            async function applySnapshotConfirm(nodeName, filename) {
+                if (!confirm(`⚠️ WARNING: This will replace the current ${nodeName.toUpperCase()} blockchain data with the snapshot:\n\n${filename}\n\nThe node will be stopped during this operation.\nYour nodekey and jwtsecret will be preserved.\n\nDo you want to continue?`)) {
+                    return;
+                }
+
+                const container = document.getElementById('snapshots-list');
+                const originalContent = container.innerHTML;
+                container.innerHTML = '<div style="padding: 20px; text-align: center;"><div style="color: #ff9800; font-size: 16px; margin-bottom: 10px;">⚡ Applying snapshot...</div><div style="color: #aaa; font-size: 14px;">The node is being stopped and data is being replaced.<br>This may take several minutes. Please do not close this window.</div></div>';
+
+                try {
+                    let result = await fetch('/apply-snapshot', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName, filename })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        alert(`Snapshot applied successfully!\n\n${data.wasRunning ? 'The node was stopped. Please restart it to use the new data.' : 'Please start the node to use the new data.'}`);
+                        await loadSnapshotsList(nodeName);
+                    } else {
+                        alert('Error applying snapshot: ' + (data.error || 'Unknown error'));
+                        container.innerHTML = originalContent;
+                    }
+                } catch (error) {
+                    console.error('Error applying snapshot:', error);
+                    alert('Error applying snapshot: ' + error.message);
+                    container.innerHTML = originalContent;
                 }
             }
 
