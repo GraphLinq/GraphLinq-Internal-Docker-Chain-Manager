@@ -154,6 +154,34 @@
             .btn-file.secondary:hover {
                 background-color: #45a049;
             }
+            .snapshot-item {
+                background-color: #223344;
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 4px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-left: 4px solid #2774ff;
+            }
+            .snapshot-info {
+                flex: 1;
+            }
+            .snapshot-name {
+                font-family: monospace;
+                font-size: 14px;
+                color: #4CAF50;
+                font-weight: bold;
+            }
+            .snapshot-details {
+                font-size: 12px;
+                color: #aaa;
+                margin-top: 5px;
+            }
+            .snapshot-actions {
+                display: flex;
+                gap: 5px;
+            }
         </style>
         <div id="PageStatus" style="display: none;">
             <table style="width:100%;">
@@ -171,9 +199,14 @@
                 <tr>
                     <td>Current Block</td>
                     <td id="node1-block" class="block-info">0</td>
-                    <td colspan="4">
+                    <td colspan="2">
                         <button class="mdc-button mdc-button--raised" onclick="showPeersModal('node1')">
                             <span class="mdc-button__label">View Peers</span>
+                        </button>
+                    </td>
+                    <td colspan="2">
+                        <button class="mdc-button mdc-button--raised" onclick="showSnapshotsModal('node1')">
+                            <span class="mdc-button__label">Snapshots</span>
                         </button>
                     </td>
                 </tr>
@@ -232,9 +265,14 @@
                 <tr>
                     <td>Current Block</td>
                     <td id="node2-block" class="block-info">0</td>
-                    <td colspan="4">
+                    <td colspan="2">
                         <button class="mdc-button mdc-button--raised" onclick="showPeersModal('node2')">
                             <span class="mdc-button__label">View Peers</span>
+                        </button>
+                    </td>
+                    <td colspan="2">
+                        <button class="mdc-button mdc-button--raised" onclick="showSnapshotsModal('node2')">
+                            <span class="mdc-button__label">Snapshots</span>
                         </button>
                     </td>
                 </tr>
@@ -326,6 +364,32 @@
                         <input type="file" id="trusted-upload" class="file-upload-input" accept=".json" onchange="uploadTrustedPeers(event)">
                     </div>
                     <div id="trusted-peers-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Snapshots Modal -->
+        <div id="snapshotsModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeSnapshotsModal()">&times;</span>
+                <h2 id="snapshot-modal-title">Node Snapshots</h2>
+                
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                    <h4 style="margin-top: 0;">Create New Snapshot</h4>
+                    <button class="btn-file" onclick="createSnapshot()" id="create-snapshot-btn" style="background: #4CAF50;">
+                        📸 Create Snapshot
+                    </button>
+                    <div id="snapshot-creation-status" style="margin-top: 10px; display: none;">
+                        <div style="color: #4CAF50;">Creating snapshot, please wait...</div>
+                        <div style="margin-top: 5px; color: #aaa; font-size: 12px;">This may take several minutes depending on the blockchain size.</div>
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <h3>Available Snapshots</h3>
+                    <div id="snapshots-list">
+                        <p>Loading...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1195,11 +1259,155 @@
                 }
             }
 
+            // Snapshots Modal Functions
+            let currentSnapshotNode = null;
+
+            async function showSnapshotsModal(nodeName) {
+                currentSnapshotNode = nodeName;
+                document.getElementById('snapshot-modal-title').innerText = `${nodeName.toUpperCase()} Snapshots`;
+                document.getElementById('snapshotsModal').style.display = 'block';
+                
+                // Load snapshots list
+                await loadSnapshotsList(nodeName);
+            }
+
+            function closeSnapshotsModal() {
+                document.getElementById('snapshotsModal').style.display = 'none';
+                currentSnapshotNode = null;
+                document.getElementById('snapshot-creation-status').style.display = 'none';
+            }
+
+            async function loadSnapshotsList(nodeName) {
+                const container = document.getElementById('snapshots-list');
+                container.innerHTML = '<p>Loading...</p>';
+                
+                try {
+                    let result = await fetch('/list-snapshots', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success && data.snapshots && data.snapshots.length > 0) {
+                        container.innerHTML = '';
+                        
+                        data.snapshots.forEach(snapshot => {
+                            const snapshotDiv = document.createElement('div');
+                            snapshotDiv.className = 'snapshot-item';
+                            snapshotDiv.innerHTML = `
+                                <div class="snapshot-info">
+                                    <div class="snapshot-name">${snapshot.filename}</div>
+                                    <div class="snapshot-details">
+                                        Size: ${formatBytes(snapshot.size)} | Created: ${snapshot.date}
+                                    </div>
+                                </div>
+                                <div class="snapshot-actions">
+                                    <button class="btn-small" onclick="downloadSnapshot('${nodeName}', '${snapshot.filename}')">
+                                        📥 Download
+                                    </button>
+                                    <button class="btn-small danger" onclick="removeSnapshot('${nodeName}', '${snapshot.filename}')">
+                                        🗑️ Remove
+                                    </button>
+                                </div>
+                            `;
+                            container.appendChild(snapshotDiv);
+                        });
+                    } else {
+                        container.innerHTML = '<p>No snapshots available</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading snapshots:', error);
+                    container.innerHTML = '<p>Error loading snapshots</p>';
+                }
+            }
+
+            async function createSnapshot() {
+                if (!currentSnapshotNode) return;
+                
+                const createBtn = document.getElementById('create-snapshot-btn');
+                const statusDiv = document.getElementById('snapshot-creation-status');
+                
+                createBtn.disabled = true;
+                statusDiv.style.display = 'block';
+                
+                try {
+                    let result = await fetch('/create-snapshot', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName: currentSnapshotNode })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        alert('Snapshot created successfully!');
+                        await loadSnapshotsList(currentSnapshotNode);
+                    } else {
+                        alert('Error creating snapshot: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error creating snapshot:', error);
+                    alert('Error creating snapshot: ' + error.message);
+                } finally {
+                    createBtn.disabled = false;
+                    statusDiv.style.display = 'none';
+                }
+            }
+
+            async function downloadSnapshot(nodeName, filename) {
+                window.open(`/download-snapshot?nodeName=${nodeName}&filename=${encodeURIComponent(filename)}&access-code=${password}`, '_blank');
+            }
+
+            async function removeSnapshot(nodeName, filename) {
+                if (!confirm(`Are you sure you want to remove snapshot ${filename}?`)) {
+                    return;
+                }
+                
+                try {
+                    let result = await fetch('/remove-snapshot', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName, filename })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        await loadSnapshotsList(nodeName);
+                    } else {
+                        alert('Error removing snapshot: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error removing snapshot:', error);
+                    alert('Error removing snapshot: ' + error.message);
+                }
+            }
+
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+
             // Close modal when clicking outside
             window.onclick = function(event) {
-                const modal = document.getElementById('peersModal');
-                if (event.target == modal) {
+                const peersModal = document.getElementById('peersModal');
+                const snapshotsModal = document.getElementById('snapshotsModal');
+                if (event.target == peersModal) {
                     closePeersModal();
+                } else if (event.target == snapshotsModal) {
+                    closeSnapshotsModal();
                 }
             }
 

@@ -1,0 +1,83 @@
+const fs = require('fs');
+const path = require('path');
+const { exec } = require('child_process');
+const util = require('util');
+const execPromise = util.promisify(exec);
+
+const createSnapshot = (app, environement) => {
+    app.post('/create-snapshot', async (req, res) => {
+        try {
+            const { nodeName } = req.body;
+
+            if (!nodeName) {
+                return res.status(400).send({ error: 'nodeName is required' });
+            }
+
+            // Check if node is running to get block height
+            let blockHeight = '0';
+            if (nodeName === 'node1' && app.node1 && app.node1.status === '1') {
+                try {
+                    const blockData = await app.node1.ipcExec('eth.blockNumber', false);
+                    blockHeight = blockData.trim();
+                } catch (e) {
+                    console.error('Error getting block height:', e);
+                }
+            } else if (nodeName === 'node2' && app.node2 && app.node2.status === '1') {
+                try {
+                    const blockData = await app.node2.ipcExec('eth.blockNumber', false);
+                    blockHeight = blockData.trim();
+                } catch (e) {
+                    console.error('Error getting block height:', e);
+                }
+            }
+
+            // Create timestamp for filename: 2025-11-15_01-34-29
+            const now = new Date();
+            const timestamp = now.toISOString()
+                .replace(/T/, '_')
+                .replace(/:/g, '-')
+                .substring(0, 19);
+
+            // Create filename: snapshot_<height>_2025-11-15_01-34-29.tar.gz
+            const filename = `snapshot_${blockHeight}_${timestamp}.tar.gz`;
+
+            const nodeDir = path.join(__dirname, '..', 'nodes', nodeName);
+            const snapshotsDir = path.join(nodeDir, 'snapshots');
+            const gethDir = path.join(nodeDir, 'geth');
+            const snapshotPath = path.join(snapshotsDir, filename);
+
+            // Create snapshots directory if it doesn't exist
+            if (!fs.existsSync(snapshotsDir)) {
+                fs.mkdirSync(snapshotsDir, { recursive: true });
+            }
+
+            // Check if geth directory exists
+            if (!fs.existsSync(gethDir)) {
+                return res.status(400).send({ error: 'Node data directory not found' });
+            }
+
+            // Create tar.gz archive of geth directory
+            // Exclude private files: nodekey and jwtsecret
+            // Using tar -czf to create compressed archive
+            const tarCommand = `cd "${nodeDir}" && tar -czf "${snapshotPath}" --exclude='geth/nodekey' --exclude='geth/jwtsecret' geth`;
+            
+            console.log(`Creating snapshot: ${filename}`);
+            await execPromise(tarCommand);
+            console.log(`Snapshot created successfully: ${filename}`);
+
+            res.send({ 
+                success: true, 
+                filename,
+                message: 'Snapshot created successfully'
+            });
+        } catch (error) {
+            console.error('Error creating snapshot:', error);
+            res.status(500).send({ error: error.message });
+        }
+    });
+};
+
+module.exports = {
+    createSnapshot
+};
+
