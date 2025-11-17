@@ -38,6 +38,122 @@
                 cursor: text;
                 text-align: center;
             }
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0,0,0,0.7);
+            }
+            .modal-content {
+                background-color: #182231;
+                margin: 5% auto;
+                padding: 20px;
+                border: 2px solid #2774ff;
+                width: 80%;
+                max-width: 800px;
+                border-radius: 8px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+            .close {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .close:hover,
+            .close:focus {
+                color: #fff;
+            }
+            .peer-item {
+                background-color: #223344;
+                padding: 10px;
+                margin: 5px 0;
+                border-radius: 4px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .peer-item.trusted {
+                border-left: 4px solid #4CAF50;
+            }
+            .peer-enode {
+                flex: 1;
+                word-break: break-all;
+                font-family: monospace;
+                font-size: 12px;
+            }
+            .peer-actions {
+                margin-left: 10px;
+            }
+            .btn-small {
+                padding: 5px 10px;
+                margin: 0 2px;
+                cursor: pointer;
+                border: none;
+                border-radius: 3px;
+                background-color: #2774ff;
+                color: white;
+            }
+            .btn-small.danger {
+                background-color: #ff4444;
+            }
+            .btn-small:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            .block-info {
+                font-weight: bold;
+                color: #4CAF50;
+            }
+            .peer-tab {
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 5px;
+                background-color: #223344;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .peer-tab.active {
+                background-color: #2774ff;
+            }
+            .file-actions {
+                margin: 15px 0;
+                padding: 15px;
+                background-color: #223344;
+                border-radius: 4px;
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            .file-upload-input {
+                display: none;
+            }
+            .btn-file {
+                padding: 8px 16px;
+                background-color: #2774ff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+            .btn-file:hover {
+                background-color: #1a5acc;
+            }
+            .btn-file.secondary {
+                background-color: #4CAF50;
+            }
+            .btn-file.secondary:hover {
+                background-color: #45a049;
+            }
         </style>
         <div id="PageStatus" style="display: none;">
             <table style="width:100%;">
@@ -51,6 +167,15 @@
                     <td>INTERNAL NODE STATUS</td>
                     <td id="node1-status" class="mdc-button mdc-button--outlined customColor"></td>
                     <td colspan="4"></td>
+                </tr>
+                <tr>
+                    <td>Current Block</td>
+                    <td id="node1-block" class="block-info">0</td>
+                    <td colspan="4">
+                        <button class="mdc-button mdc-button--raised" onclick="showPeersModal('node1')">
+                            <span class="mdc-button__label">View Peers</span>
+                        </button>
+                    </td>
                 </tr>
                 <tr>
                     <td>Node</td>
@@ -105,6 +230,15 @@
                     <td colspan="4"></td>
                 </tr>
                 <tr>
+                    <td>Current Block</td>
+                    <td id="node2-block" class="block-info">0</td>
+                    <td colspan="4">
+                        <button class="mdc-button mdc-button--raised" onclick="showPeersModal('node2')">
+                            <span class="mdc-button__label">View Peers</span>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
                     <td colspan="1">Node</td>
                     <td colspan="1"><button id="node2-button-start" class="mdc-button mdc-button--raised" onclick="startNode2(this)">Start</button></td>
                     <td colspan="1"><button id="node2-button-stop" class="mdc-button mdc-button--raised" onclick="stopNode2(this)">Stop</button></td>
@@ -150,6 +284,53 @@
                     <!-- <td><button onclick="applyPairNodes(document.getElementById('textarea-pair-nodes-ids').value)">Apply on Nodes</button></td> -->
                 </tr>
             </table>
+        </div>
+
+        <!-- Peers Modal -->
+        <div id="peersModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closePeersModal()">&times;</span>
+                <h2 id="modal-title">Node Peers</h2>
+                
+                <div id="peer-tabs" style="margin: 20px 0;">
+                    <div class="peer-tab active" onclick="switchPeerTab('connected')" id="tab-connected">Connected Peers</div>
+                    <div class="peer-tab" onclick="switchPeerTab('static')" id="tab-static">Static Peers</div>
+                    <div class="peer-tab" onclick="switchPeerTab('trusted')" id="tab-trusted">Trusted Peers</div>
+                </div>
+
+                <div id="connected-peers-container" style="display: block;">
+                    <h3>Connected Peers</h3>
+                    <div id="connected-peers-list"></div>
+                </div>
+
+                <div id="static-peers-container" style="display: none;">
+                    <h3>Static Peers</h3>
+                    <div class="file-actions">
+                        <button class="btn-file" onclick="downloadStaticPeers()">
+                            📥 Download static-nodes.json
+                        </button>
+                        <label for="static-upload" class="btn-file secondary">
+                            📤 Upload static-nodes.json
+                        </label>
+                        <input type="file" id="static-upload" class="file-upload-input" accept=".json" onchange="uploadStaticPeers(event)">
+                    </div>
+                    <div id="static-peers-list"></div>
+                </div>
+
+                <div id="trusted-peers-container" style="display: none;">
+                    <h3>Trusted Peers</h3>
+                    <div class="file-actions">
+                        <button class="btn-file" onclick="downloadTrustedPeers()">
+                            📥 Download trusted-nodes.json
+                        </button>
+                        <label for="trusted-upload" class="btn-file secondary">
+                            📤 Upload trusted-nodes.json
+                        </label>
+                        <input type="file" id="trusted-upload" class="file-upload-input" accept=".json" onchange="uploadTrustedPeers(event)">
+                    </div>
+                    <div id="trusted-peers-list"></div>
+                </div>
+            </div>
         </div>
 
         <div id="PageSetup" style="display: none;">
@@ -274,9 +455,16 @@
                 element.scrollTop = element.scrollHeight;
             }
 
+            // Store current peer data globally
+            let currentPeerData = {
+                node1: { staticPeers: [], trustedPeers: [] },
+                node2: { staticPeers: [], trustedPeers: [] }
+            };
+
             async function updateDisplay(jsonData) {
 
                 let node1Status = document.getElementById('node1-status');
+                let node1Block = document.getElementById('node1-block');
                 let node1Logs = document.getElementById('node1-logs');
                 let node1ipcLogs = document.getElementById('node1-ipc-logs');
                 let node1ButtonStart = document.getElementById('node1-button-start');
@@ -285,12 +473,14 @@
                 let node1ButtonMinerStop = document.getElementById('node1-button-miner-stop');
 
                 let node2Status = document.getElementById('node2-status');
+                let node2Block = document.getElementById('node2-block');
                 let node2Logs = document.getElementById('node2-logs');
                 let node2ipcLogs = document.getElementById('node2-ipc-logs');
                 let node2ButtonStart = document.getElementById('node2-button-start');
                 let node2ButtonStop = document.getElementById('node2-button-stop');
 
                 node1Status.innerText = jsonData.node1.status;
+                node1Block.innerText = jsonData.node1.currentBlock || 0;
                 if (compareIt(node1Logs.innerHTML, jsonData.node1.logs.join('\n'))) {
                     node1Logs.innerHTML = jsonData.node1.logs.join('\n');
                     scrollLogToBottom(node1Logs);
@@ -305,6 +495,7 @@
                 node1ButtonMinerStop.disabled = jsonData.node1.mining == '0';
 
                 node2Status.innerText = jsonData.node2.status;
+                node2Block.innerText = jsonData.node2.currentBlock || 0;
                 if (compareIt(node2Logs.innerHTML, jsonData.node2.logs.join('\n'))) {
                     node2Logs.innerHTML = jsonData.node2.logs.join('\n');
                     scrollLogToBottom(node2Logs);
@@ -315,6 +506,12 @@
                 }
                 node2ButtonStart.disabled = jsonData.node2.status == '1';
                 node2ButtonStop.disabled = jsonData.node2.status == '0';
+
+                // Store peer data
+                currentPeerData.node1.staticPeers = jsonData.node1.staticPeers || [];
+                currentPeerData.node1.trustedPeers = jsonData.node1.trustedPeers || [];
+                currentPeerData.node2.staticPeers = jsonData.node2.staticPeers || [];
+                currentPeerData.node2.trustedPeers = jsonData.node2.trustedPeers || [];
 
                 let pairNodesIds = document.getElementById('textarea-pair-nodes-ids');
                 if (compareIt(pairNodesIds.innerHTML, jsonData.pairNodes.join('\n'))) {
@@ -615,6 +812,317 @@
                     }, 1000 / 1);
                 } else {
                     document.getElementById('PageSetup').style.display = 'block';
+                }
+            }
+
+            // Peers Modal Functions
+            let currentModalNode = null;
+
+            async function showPeersModal(nodeName) {
+                currentModalNode = nodeName;
+                document.getElementById('modal-title').innerText = `${nodeName.toUpperCase()} Peers`;
+                document.getElementById('peersModal').style.display = 'block';
+                
+                // Reset to connected peers tab
+                switchPeerTab('connected');
+                
+                // Load peers data
+                await loadPeersData(nodeName);
+            }
+
+            function closePeersModal() {
+                document.getElementById('peersModal').style.display = 'none';
+                currentModalNode = null;
+            }
+
+            // Download functions
+            function downloadStaticPeers() {
+                if (!currentModalNode) return;
+                
+                const staticPeers = currentPeerData[currentModalNode].staticPeers;
+                const jsonString = JSON.stringify(staticPeers, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentModalNode}-static-nodes.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            function downloadTrustedPeers() {
+                if (!currentModalNode) return;
+                
+                const trustedPeers = currentPeerData[currentModalNode].trustedPeers;
+                const jsonString = JSON.stringify(trustedPeers, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentModalNode}-trusted-nodes.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Upload functions
+            async function uploadStaticPeers(event) {
+                if (!currentModalNode) return;
+                
+                const file = event.target.files[0];
+                if (!file) return;
+
+                try {
+                    const text = await file.text();
+                    const staticPeers = JSON.parse(text);
+
+                    if (!Array.isArray(staticPeers)) {
+                        alert('Invalid file format. Expected a JSON array.');
+                        return;
+                    }
+
+                    let result = await fetch('/upload-static-peers', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName: currentModalNode, staticPeers })
+                    });
+                    let data = await result.json();
+
+                    if (data.success) {
+                        // Update local data
+                        currentPeerData[currentModalNode].staticPeers = data.staticPeers;
+                        // Reload the modal data
+                        await loadPeersData(currentModalNode);
+                        alert('Static peers uploaded successfully!');
+                    } else {
+                        alert('Error uploading static peers: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error uploading static peers:', error);
+                    alert('Error uploading static peers: ' + error.message);
+                }
+
+                // Reset file input
+                event.target.value = '';
+            }
+
+            async function uploadTrustedPeers(event) {
+                if (!currentModalNode) return;
+                
+                const file = event.target.files[0];
+                if (!file) return;
+
+                try {
+                    const text = await file.text();
+                    const trustedPeers = JSON.parse(text);
+
+                    if (!Array.isArray(trustedPeers)) {
+                        alert('Invalid file format. Expected a JSON array.');
+                        return;
+                    }
+
+                    let result = await fetch('/upload-trusted-peers', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName: currentModalNode, trustedPeers })
+                    });
+                    let data = await result.json();
+
+                    if (data.success) {
+                        // Update local data
+                        currentPeerData[currentModalNode].trustedPeers = data.trustedPeers;
+                        // Reload the modal data
+                        await loadPeersData(currentModalNode);
+                        alert('Trusted peers uploaded successfully!');
+                    } else {
+                        alert('Error uploading trusted peers: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error uploading trusted peers:', error);
+                    alert('Error uploading trusted peers: ' + error.message);
+                }
+
+                // Reset file input
+                event.target.value = '';
+            }
+
+            function switchPeerTab(tab) {
+                // Update tab styles
+                document.getElementById('tab-connected').classList.remove('active');
+                document.getElementById('tab-static').classList.remove('active');
+                document.getElementById('tab-trusted').classList.remove('active');
+                document.getElementById(`tab-${tab}`).classList.add('active');
+
+                // Show/hide containers
+                document.getElementById('connected-peers-container').style.display = tab === 'connected' ? 'block' : 'none';
+                document.getElementById('static-peers-container').style.display = tab === 'static' ? 'block' : 'none';
+                document.getElementById('trusted-peers-container').style.display = tab === 'trusted' ? 'block' : 'none';
+            }
+
+            async function loadPeersData(nodeName) {
+                // Load connected peers
+                await loadConnectedPeers(nodeName);
+                
+                // Load static and trusted peers from stored data
+                loadStaticPeers(nodeName);
+                loadTrustedPeers(nodeName);
+            }
+
+            async function loadConnectedPeers(nodeName) {
+                const container = document.getElementById('connected-peers-list');
+                container.innerHTML = '<p>Loading...</p>';
+                
+                try {
+                    let result = await fetch('/get-connected-peers', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success && data.peers && data.peers.length > 0) {
+                        const trustedPeers = currentPeerData[nodeName].trustedPeers;
+                        container.innerHTML = '';
+                        
+                        data.peers.forEach(peer => {
+                            const peerEnode = peer.enode || peer.id || 'Unknown';
+                            const isTrusted = trustedPeers.some(tp => tp.includes(peerEnode.split('@')[0]));
+                            
+                            const peerDiv = document.createElement('div');
+                            peerDiv.className = `peer-item ${isTrusted ? 'trusted' : ''}`;
+                            peerDiv.innerHTML = `
+                                <div class="peer-enode">${peerEnode}${isTrusted ? ' <span style="color: #4CAF50;">[TRUSTED]</span>' : ''}</div>
+                                <div class="peer-actions">
+                                    ${!isTrusted ? `<button class="btn-small" onclick="addTrustedPeer('${nodeName}', '${peerEnode}')">Trust</button>` : ''}
+                                </div>
+                            `;
+                            container.appendChild(peerDiv);
+                        });
+                    } else {
+                        container.innerHTML = '<p>No connected peers</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading connected peers:', error);
+                    container.innerHTML = '<p>Error loading connected peers</p>';
+                }
+            }
+
+            function loadStaticPeers(nodeName) {
+                const container = document.getElementById('static-peers-list');
+                const staticPeers = currentPeerData[nodeName].staticPeers;
+                const trustedPeers = currentPeerData[nodeName].trustedPeers;
+                
+                if (staticPeers.length > 0) {
+                    container.innerHTML = '';
+                    staticPeers.forEach(peerEnode => {
+                        const isTrusted = trustedPeers.includes(peerEnode);
+                        
+                        const peerDiv = document.createElement('div');
+                        peerDiv.className = `peer-item ${isTrusted ? 'trusted' : ''}`;
+                        peerDiv.innerHTML = `
+                            <div class="peer-enode">${peerEnode}${isTrusted ? ' <span style="color: #4CAF50;">[TRUSTED]</span>' : ''}</div>
+                            <div class="peer-actions">
+                                ${!isTrusted ? `<button class="btn-small" onclick="addTrustedPeer('${nodeName}', '${peerEnode}')">Trust</button>` : `<button class="btn-small danger" onclick="removeTrustedPeer('${nodeName}', '${peerEnode}')">Untrust</button>`}
+                            </div>
+                        `;
+                        container.appendChild(peerDiv);
+                    });
+                } else {
+                    container.innerHTML = '<p>No static peers configured</p>';
+                }
+            }
+
+            function loadTrustedPeers(nodeName) {
+                const container = document.getElementById('trusted-peers-list');
+                const trustedPeers = currentPeerData[nodeName].trustedPeers;
+                
+                if (trustedPeers.length > 0) {
+                    container.innerHTML = '';
+                    trustedPeers.forEach(peerEnode => {
+                        const peerDiv = document.createElement('div');
+                        peerDiv.className = 'peer-item trusted';
+                        peerDiv.innerHTML = `
+                            <div class="peer-enode">${peerEnode}</div>
+                            <div class="peer-actions">
+                                <button class="btn-small danger" onclick="removeTrustedPeer('${nodeName}', '${peerEnode}')">Remove</button>
+                            </div>
+                        `;
+                        container.appendChild(peerDiv);
+                    });
+                } else {
+                    container.innerHTML = '<p>No trusted peers</p>';
+                }
+            }
+
+            async function addTrustedPeer(nodeName, peerEnode) {
+                try {
+                    let result = await fetch('/add-trusted-peer', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName, peerEnode })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        // Update local data
+                        currentPeerData[nodeName].trustedPeers = data.trustedNodes;
+                        // Reload the modal data
+                        await loadPeersData(nodeName);
+                    } else {
+                        alert('Error adding trusted peer: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error adding trusted peer:', error);
+                    alert('Error adding trusted peer: ' + error.message);
+                }
+            }
+
+            async function removeTrustedPeer(nodeName, peerEnode) {
+                try {
+                    let result = await fetch('/remove-trusted-peer', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nodeName, peerEnode })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        // Update local data
+                        currentPeerData[nodeName].trustedPeers = data.trustedNodes;
+                        // Reload the modal data
+                        await loadPeersData(nodeName);
+                    } else {
+                        alert('Error removing trusted peer: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error removing trusted peer:', error);
+                    alert('Error removing trusted peer: ' + error.message);
+                }
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modal = document.getElementById('peersModal');
+                if (event.target == modal) {
+                    closePeersModal();
                 }
             }
 
