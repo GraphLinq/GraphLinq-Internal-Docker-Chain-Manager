@@ -606,7 +606,7 @@
                 let node2ButtonStart = document.getElementById('node2-button-start');
                 let node2ButtonStop = document.getElementById('node2-button-stop');
 
-                node1Status.innerText = jsonData.node1.status;
+                node1Status.innerText = jsonData.node1.status == '1' ? 'RUNNING' : 'STOPPED';
                 node1Block.innerText = jsonData.node1.currentBlock || 0;
                 if (compareIt(node1Logs.innerHTML, jsonData.node1.logs.join('\n'))) {
                     node1Logs.innerHTML = jsonData.node1.logs.join('\n');
@@ -621,7 +621,7 @@
                 node1ButtonMinerStart.disabled = jsonData.node1.mining == '1';
                 node1ButtonMinerStop.disabled = jsonData.node1.mining == '0';
 
-                node2Status.innerText = jsonData.node2.status;
+                node2Status.innerText = jsonData.node2.status == '1' ? 'RUNNING' : 'STOPPED';
                 node2Block.innerText = jsonData.node2.currentBlock || 0;
                 if (compareIt(node2Logs.innerHTML, jsonData.node2.logs.join('\n'))) {
                     node2Logs.innerHTML = jsonData.node2.logs.join('\n');
@@ -1445,6 +1445,9 @@
                                     <button class="btn-small" onclick="applySnapshotConfirm('${nodeName}', '${snapshot.filename}')" style="background: #ff9800;">
                                         ⚡ Apply
                                     </button>
+                                    <button class="btn-small" onclick="moveSnapshotConfirm('${nodeName}', '${snapshot.filename}')" style="background: #9C27B0;">
+                                        🔄 Move to ${nodeName === 'node1' ? 'Node2' : 'Node1'}
+                                    </button>
                                     <button class="btn-small" onclick="downloadSnapshot('${nodeName}', '${snapshot.filename}')">
                                         📥 Download
                                     </button>
@@ -1527,6 +1530,36 @@
                 } catch (error) {
                     console.error('Error removing snapshot:', error);
                     alert('Error removing snapshot: ' + error.message);
+                }
+            }
+
+            async function moveSnapshotConfirm(sourceNode, filename) {
+                const targetNode = sourceNode === 'node1' ? 'node2' : 'node1';
+                
+                if (!confirm(`🔄 Move snapshot to ${targetNode.toUpperCase()}?\n\nSnapshot: ${filename}\n\nThis will move the snapshot from ${sourceNode.toUpperCase()} to ${targetNode.toUpperCase()}.\n\nDo you want to continue?`)) {
+                    return;
+                }
+                
+                try {
+                    let result = await fetch('/move-snapshot', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ sourceNode, targetNode, filename })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        alert(`Snapshot moved successfully to ${targetNode.toUpperCase()}!`);
+                        await loadSnapshotsList(sourceNode);
+                    } else {
+                        alert('Error moving snapshot: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error moving snapshot:', error);
+                    alert('Error moving snapshot: ' + error.message);
                 }
             }
 
