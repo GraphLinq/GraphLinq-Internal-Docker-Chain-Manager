@@ -1,9 +1,7 @@
 const fs = require('fs');
 
-const getHtmlContent = (environement) => {
+const getHtmlContent = () => {
     let content = (fs.readFileSync('./html/status.html')).toString();
-
-    content = content.replace(/\$password/, environement.password);
     return content;
 }
 
@@ -11,8 +9,23 @@ const keyth = require('keythereum');
 
 const status = (app, environement) => {
     app.get('/status', async (req, res) => {
+        // Check if password exists
+        if (!fs.existsSync('./.password')) {
+            // First time - redirect to login
+            return res.redirect('/login');
+        }
 
-        let htmlContent = getHtmlContent(environement);
+        // Check if user is authenticated via header
+        const accessCode = req.headers['access-code'] || req.query['access-code'];
+        const storedPassword = fs.readFileSync('./.password').toString();
+        
+        // If no access code provided, serve the HTML (it will check sessionStorage)
+        // If access code is provided but wrong, return error
+        if (accessCode && accessCode !== storedPassword) {
+            return res.status(401).send('<script>sessionStorage.removeItem("access-code"); window.location.href="/login";</script>');
+        }
+
+        let htmlContent = getHtmlContent();
 
         htmlContent = htmlContent.replace(/\$status/, 'ONLINE');
 

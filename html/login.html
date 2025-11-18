@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GLQ Nodes - Login</title>
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+        <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <style>
+            body {
+                background-color: #182231;
+                color: #ffffff;
+                font-family: helveticaneue, Helvetica, Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+            }
+            .login-container {
+                background-color: #223344;
+                padding: 40px;
+                border-radius: 12px;
+                border: 2px solid #2774ff;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+                width: 100%;
+                max-width: 450px;
+            }
+            .logo-container {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .logo-container img {
+                height: 80px;
+            }
+            h1 {
+                color: #2774ff;
+                text-align: center;
+                margin: 0 0 10px 0;
+                font-size: 28px;
+            }
+            .subtitle {
+                text-align: center;
+                color: #aaa;
+                margin-bottom: 30px;
+                font-size: 14px;
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            label {
+                display: block;
+                margin-bottom: 8px;
+                color: #fff;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            input[type="password"], input[type="text"] {
+                width: 100%;
+                padding: 12px;
+                background-color: #182231;
+                border: 1px solid #2774ff;
+                border-radius: 6px;
+                color: #ffffff;
+                font-size: 16px;
+                box-sizing: border-box;
+                transition: border-color 0.3s;
+            }
+            input[type="password"]:focus, input[type="text"]:focus {
+                outline: none;
+                border-color: #4a94ff;
+                box-shadow: 0 0 0 3px rgba(39, 116, 255, 0.1);
+            }
+            .btn {
+                width: 100%;
+                padding: 14px;
+                background-color: #2774ff;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+            .btn:hover {
+                background-color: #1a5acc;
+            }
+            .btn:disabled {
+                background-color: #555;
+                cursor: not-allowed;
+                opacity: 0.6;
+            }
+            .error-message {
+                background-color: rgba(255, 68, 68, 0.2);
+                border: 1px solid #ff4444;
+                color: #ff8888;
+                padding: 12px;
+                border-radius: 6px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                display: none;
+            }
+            .success-message {
+                background-color: rgba(76, 175, 80, 0.2);
+                border: 1px solid #4CAF50;
+                color: #4CAF50;
+                padding: 12px;
+                border-radius: 6px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                display: none;
+            }
+            .info-message {
+                background-color: rgba(39, 116, 255, 0.2);
+                border: 1px solid #2774ff;
+                color: #6aa9ff;
+                padding: 12px;
+                border-radius: 6px;
+                margin-bottom: 20px;
+                font-size: 14px;
+            }
+            .password-strength {
+                margin-top: 8px;
+                font-size: 12px;
+            }
+            .strength-bar {
+                height: 4px;
+                background-color: #182231;
+                border-radius: 2px;
+                margin-top: 4px;
+                overflow: hidden;
+            }
+            .strength-bar-fill {
+                height: 100%;
+                transition: width 0.3s, background-color 0.3s;
+                width: 0%;
+                background-color: #ff4444;
+            }
+            .password-requirements {
+                font-size: 12px;
+                color: #aaa;
+                margin-top: 8px;
+                line-height: 1.6;
+            }
+            .requirement {
+                display: flex;
+                align-items: center;
+                margin: 4px 0;
+            }
+            .requirement.met {
+                color: #4CAF50;
+            }
+            .requirement-icon {
+                margin-right: 6px;
+                font-size: 14px;
+            }
+            .show-password {
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+                font-size: 14px;
+                color: #aaa;
+                cursor: pointer;
+                user-select: none;
+            }
+            .show-password input {
+                margin-right: 8px;
+                width: auto;
+            }
+            #countdown-timer {
+                text-align: center;
+                color: #ff8888;
+                font-size: 14px;
+                margin-top: 10px;
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-container">
+            <div class="logo-container">
+                <img src="logo.png" alt="GLQ Logo"/>
+            </div>
+            
+            <h1 id="login-title">Login</h1>
+            <div class="subtitle" id="login-subtitle">Enter your password to continue</div>
+            
+            <div class="error-message" id="error-message"></div>
+            <div class="success-message" id="success-message"></div>
+            
+            <div id="first-time-info" class="info-message" style="display: none;">
+                🔐 This is your first time logging in. Please create a secure password to protect your nodes.
+            </div>
+            
+            <form id="login-form" onsubmit="return false;">
+                <div class="form-group" id="password-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="off">
+                    <label class="show-password">
+                        <input type="checkbox" id="show-password" onchange="togglePasswordVisibility()">
+                        Show password
+                    </label>
+                </div>
+                
+                <div class="form-group" id="confirm-password-group" style="display: none;">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" autocomplete="off">
+                    <div class="password-strength" id="password-strength" style="display: none;">
+                        <div>Password strength:</div>
+                        <div class="strength-bar">
+                            <div class="strength-bar-fill" id="strength-bar-fill"></div>
+                        </div>
+                        <div id="strength-text" style="margin-top: 4px;">Weak</div>
+                    </div>
+                    <div class="password-requirements" id="password-requirements" style="display: none;">
+                        <div class="requirement" id="req-length">
+                            <span class="requirement-icon">○</span>
+                            <span>At least 4 characters</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn" id="login-btn" onclick="handleLogin()">Login</button>
+                
+                <div id="countdown-timer"></div>
+            </form>
+        </div>
+        
+        <script>
+            let isFirstTime = false;
+            let attemptsRemaining = 5;
+            let lockoutEndTime = null;
+            
+            // Check if it's first time login
+            async function checkFirstTime() {
+                try {
+                    const response = await fetch('/check-password-exists', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    isFirstTime = !data.exists;
+                    
+                    if (isFirstTime) {
+                        document.getElementById('login-title').textContent = 'Create Password';
+                        document.getElementById('login-subtitle').textContent = 'Set up your secure password';
+                        document.getElementById('first-time-info').style.display = 'block';
+                        document.getElementById('confirm-password-group').style.display = 'block';
+                        document.getElementById('password-strength').style.display = 'block';
+                        document.getElementById('password-requirements').style.display = 'block';
+                        document.getElementById('login-btn').textContent = 'Create Password';
+                        
+                        // Add password strength checker
+                        document.getElementById('password').addEventListener('input', checkPasswordStrength);
+                        document.getElementById('confirm-password').addEventListener('input', checkPasswordMatch);
+                    } else {
+                        // Check for existing lockout
+                        const lockoutData = localStorage.getItem('login_lockout');
+                        if (lockoutData) {
+                            const lockout = JSON.parse(lockoutData);
+                            if (lockout.endTime > Date.now()) {
+                                lockoutEndTime = lockout.endTime;
+                                startCountdown();
+                            } else {
+                                localStorage.removeItem('login_lockout');
+                            }
+                        }
+                        
+                        // Restore attempts count
+                        const attemptsData = localStorage.getItem('login_attempts');
+                        if (attemptsData) {
+                            const attempts = JSON.parse(attemptsData);
+                            if (attempts.timestamp > Date.now() - 300000) { // 5 minutes
+                                attemptsRemaining = attempts.remaining;
+                            } else {
+                                localStorage.removeItem('login_attempts');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking password status:', error);
+                    showError('Error connecting to server');
+                }
+            }
+            
+            function checkPasswordStrength() {
+                const password = document.getElementById('password').value;
+                const strengthBar = document.getElementById('strength-bar-fill');
+                const strengthText = document.getElementById('strength-text');
+                
+                let strength = 0;
+                const requirements = {
+                    length: password.length >= 8,
+                    uppercase: /[A-Z]/.test(password),
+                    lowercase: /[a-z]/.test(password),
+                    number: /[0-9]/.test(password)
+                };
+                
+                // Update requirement indicators
+                updateRequirement('req-length', requirements.length);
+                
+                // Calculate strength
+                if (requirements.length) strength += 25;
+                if (requirements.uppercase) strength += 25;
+                if (requirements.lowercase) strength += 25;
+                if (requirements.number) strength += 25;
+                
+                // Update UI
+                strengthBar.style.width = strength + '%';
+                
+                if (strength <= 25) {
+                    strengthBar.style.backgroundColor = '#ff4444';
+                    strengthText.textContent = 'Weak';
+                    strengthText.style.color = '#ff4444';
+                } else if (strength <= 50) {
+                    strengthBar.style.backgroundColor = '#ff9800';
+                    strengthText.textContent = 'Fair';
+                    strengthText.style.color = '#ff9800';
+                } else if (strength <= 75) {
+                    strengthBar.style.backgroundColor = '#ffc107';
+                    strengthText.textContent = 'Good';
+                    strengthText.style.color = '#ffc107';
+                } else {
+                    strengthBar.style.backgroundColor = '#4CAF50';
+                    strengthText.textContent = 'Strong';
+                    strengthText.style.color = '#4CAF50';
+                }
+                
+                checkPasswordMatch();
+            }
+            
+            function updateRequirement(id, met) {
+                const element = document.getElementById(id);
+                const icon = element.querySelector('.requirement-icon');
+                if (met) {
+                    element.classList.add('met');
+                    icon.textContent = '✓';
+                } else {
+                    element.classList.remove('met');
+                    icon.textContent = '○';
+                }
+            }
+            
+            function checkPasswordMatch() {
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                const confirmInput = document.getElementById('confirm-password');
+                
+                if (confirmPassword === '') {
+                    confirmInput.style.borderColor = '#2774ff';
+                    return;
+                }
+                
+                if (password === confirmPassword) {
+                    confirmInput.style.borderColor = '#4CAF50';
+                } else {
+                    confirmInput.style.borderColor = '#ff4444';
+                }
+            }
+            
+            function togglePasswordVisibility() {
+                const passwordInput = document.getElementById('password');
+                const confirmPasswordInput = document.getElementById('confirm-password');
+                const showPassword = document.getElementById('show-password');
+                
+                if (showPassword.checked) {
+                    passwordInput.type = 'text';
+                    confirmPasswordInput.type = 'text';
+                } else {
+                    passwordInput.type = 'password';
+                    confirmPasswordInput.type = 'password';
+                }
+            }
+            
+            async function handleLogin() {
+                // Check if locked out
+                if (lockoutEndTime && lockoutEndTime > Date.now()) {
+                    showError('Too many failed attempts. Please wait before trying again.');
+                    return;
+                }
+                
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                const loginBtn = document.getElementById('login-btn');
+                
+                if (!password) {
+                    showError('Please enter a password');
+                    return;
+                }
+                
+                if (isFirstTime) {
+                    // Validate password requirements
+                    if (password.length < 4) {
+                        showError('Password must be at least 4 characters long');
+                        return;
+                    }
+                    
+                    if (password !== confirmPassword) {
+                        showError('Passwords do not match');
+                        return;
+                    }
+                }
+                
+                loginBtn.disabled = true;
+                hideError();
+                hideSuccess();
+                
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            password: password,
+                            isFirstTime: isFirstTime
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Store password securely in sessionStorage
+                        sessionStorage.setItem('access-code', password);
+                        
+                        // Clear any lockout data
+                        localStorage.removeItem('login_lockout');
+                        localStorage.removeItem('login_attempts');
+                        
+                        if (isFirstTime) {
+                            showSuccess('Password created successfully! Redirecting...');
+                        } else {
+                            showSuccess('Login successful! Redirecting...');
+                        }
+                        
+                        setTimeout(() => {
+                            window.location.href = '/status';
+                        }, 1000);
+                    } else {
+                        if (data.locked) {
+                            // Server-side lockout
+                            lockoutEndTime = Date.now() + (data.lockoutTime * 1000);
+                            localStorage.setItem('login_lockout', JSON.stringify({
+                                endTime: lockoutEndTime
+                            }));
+                            startCountdown();
+                            showError(`Too many failed attempts. Account locked for ${data.lockoutTime} seconds.`);
+                        } else {
+                            // Update attempts remaining
+                            attemptsRemaining = data.attemptsRemaining || 0;
+                            
+                            // Store attempts data
+                            localStorage.setItem('login_attempts', JSON.stringify({
+                                remaining: attemptsRemaining,
+                                timestamp: Date.now()
+                            }));
+                            
+                            if (attemptsRemaining > 0) {
+                                showError(`Incorrect password. ${attemptsRemaining} attempt${attemptsRemaining !== 1 ? 's' : ''} remaining.`);
+                            } else {
+                                showError(data.error || 'Login failed');
+                            }
+                        }
+                        loginBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showError('Error connecting to server');
+                    loginBtn.disabled = false;
+                }
+            }
+            
+            function startCountdown() {
+                const loginBtn = document.getElementById('login-btn');
+                const countdownTimer = document.getElementById('countdown-timer');
+                const passwordInput = document.getElementById('password');
+                const confirmPasswordInput = document.getElementById('confirm-password');
+                
+                loginBtn.disabled = true;
+                passwordInput.disabled = true;
+                confirmPasswordInput.disabled = true;
+                countdownTimer.style.display = 'block';
+                
+                const interval = setInterval(() => {
+                    const remaining = Math.ceil((lockoutEndTime - Date.now()) / 1000);
+                    
+                    if (remaining <= 0) {
+                        clearInterval(interval);
+                        loginBtn.disabled = false;
+                        passwordInput.disabled = false;
+                        confirmPasswordInput.disabled = false;
+                        countdownTimer.style.display = 'none';
+                        lockoutEndTime = null;
+                        attemptsRemaining = 5;
+                        localStorage.removeItem('login_lockout');
+                        localStorage.removeItem('login_attempts');
+                        hideError();
+                    } else {
+                        countdownTimer.textContent = `Please wait ${remaining} second${remaining !== 1 ? 's' : ''} before trying again...`;
+                    }
+                }, 1000);
+            }
+            
+            function showError(message) {
+                const errorDiv = document.getElementById('error-message');
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+            
+            function hideError() {
+                document.getElementById('error-message').style.display = 'none';
+            }
+            
+            function showSuccess(message) {
+                const successDiv = document.getElementById('success-message');
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+            }
+            
+            function hideSuccess() {
+                document.getElementById('success-message').style.display = 'none';
+            }
+            
+            // Allow Enter key to submit
+            document.getElementById('password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            document.getElementById('confirm-password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            // Initialize on load
+            window.addEventListener('DOMContentLoaded', checkFirstTime);
+        </script>
+    </body>
+</html>
+

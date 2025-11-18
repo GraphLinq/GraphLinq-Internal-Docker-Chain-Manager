@@ -26,20 +26,36 @@ app.use(function (req, res, next) {
     return ;
   }
 
-  if (!['/enodes'].includes(req.path)) { // access
-    if (req.query['access-code'] == undefined && environement.password == undefined
-      && req.headers['access-code'] == undefined && environement.password == undefined) {
-      res.send('First time login please specify the password you wish to set up by providing the password in the request parameter (ex: https://localhost:8080/status?access-code=test)');
-      return ;
+  environement.password = "";
+
+  if (fs.existsSync('./.password')) {
+    environement.password = fs.readFileSync('./.password').toString();
+  }
+
+  // Routes that don't require authentication
+  const publicRoutes = ['/enodes', '/login', '/status', '/check-password-exists'];
+  const publicPostRoutes = ['/login'];
+  
+  const isPublicRoute = publicRoutes.includes(req.path) || 
+                        (req.method === 'POST' && publicPostRoutes.includes(req.path));
+  
+  if (!isPublicRoute) { // access
+    // Check if password file exists
+    if (!fs.existsSync('./.password')) {
+      // No password set - redirect to login page
+      if (req.method === 'GET' && req.path === '/status') {
+        res.redirect('/login');
+      } else {
+        res.status(401).json({ error: 'Authentication required' });
+      }
+      return;
     }
-    if (req.headers['access-code'] != undefined && environement.password == undefined) {
-      environement.password = req.headers['access-code'];
-    }
-    if (req.query['access-code'] != undefined && environement.password == undefined) {
-      environement.password = req.query['access-code'];
-    }
-    if (req.headers['access-code'] != environement.password
-    && req.query['access-code'] != environement.password) {
+    
+    // Verify access code
+    const storedPassword = fs.readFileSync('./.password').toString();
+    const providedPassword = req.headers['access-code'] || req.query['access-code'];
+    
+    if (providedPassword !== storedPassword) {
       res.sendStatus(502); // simulate server is offline (Bad Gateway code).
       return ;
     }
@@ -48,7 +64,7 @@ app.use(function (req, res, next) {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,access-code');
 
   next();
 });

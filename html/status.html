@@ -188,7 +188,12 @@
                 <!-- Internal Node -->
 
                 <tr>
-                    <td colspan="6" style="color:white;text-align: center;font-size: x-small;"><img height="50px" src="logo.png"/> <span>v0.0.12</span></td>
+                    <td colspan="6" style="color:white;text-align: center;font-size: x-small;">
+                        <img height="50px" src="logo.png"/> <span>v0.0.12</span>
+                        <button onclick="logout()" style="position: absolute; right: 20px; top: 20px; padding: 8px 16px; background-color: #ff4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                            🚪 Logout
+                        </button>
+                    </td>
                 </tr>
 
                 <tr>
@@ -535,7 +540,37 @@
         </div>
         <script>
             let setup = $setup;
-            let password = "$password";
+            let password = sessionStorage.getItem('access-code');
+            
+            // Check if user is authenticated
+            if (!password) {
+                window.location.href = '/login';
+            }
+            
+            // Global fetch wrapper to handle authentication errors
+            const originalFetch = window.fetch;
+            window.fetch = async function(...args) {
+                try {
+                    const response = await originalFetch(...args);
+                    if (response.status === 502 || response.status === 401) {
+                        // Authentication failed - clear session and redirect to login
+                        sessionStorage.removeItem('access-code');
+                        window.location.href = '/login';
+                        return response;
+                    }
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
+            };
+            
+            // Logout function
+            function logout() {
+                if (confirm('Are you sure you want to logout?')) {
+                    sessionStorage.removeItem('access-code');
+                    window.location.href = '/login';
+                }
+            }
 
 
             // lib
