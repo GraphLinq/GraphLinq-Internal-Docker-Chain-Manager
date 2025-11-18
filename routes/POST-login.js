@@ -70,7 +70,7 @@ const login = (app, environement) => {
         if (isFirstTime) {
             // First time setup - create password
             try {
-                if (!fs.existsSync(getPasswordPath())) {
+                if (!fs.existsSync('./nodes')) {
                     fs.mkdirSync('./nodes');
                 }
                 fs.writeFileSync(getPasswordPath(), password);
