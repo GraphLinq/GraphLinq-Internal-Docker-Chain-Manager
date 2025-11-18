@@ -4,6 +4,7 @@ const environementLoader = require('./environements/environement.js');
 const fs = require('fs');
 const path = require('path');
 const { parsePairNodes } = require('./utils/pairnodes.js');
+const { getPasswordPath } = require('./utils/password-path.js');
 
 const environement = environementLoader.load();
 
@@ -28,8 +29,8 @@ app.use(function (req, res, next) {
 
   environement.password = "";
 
-  if (fs.existsSync('./.password')) {
-    environement.password = fs.readFileSync('./.password').toString();
+  if (fs.existsSync(getPasswordPath())) {
+    environement.password = fs.readFileSync(getPasswordPath()).toString();
   }
 
   // Routes that don't require authentication
@@ -41,7 +42,7 @@ app.use(function (req, res, next) {
   
   if (!isPublicRoute) { // access
     // Check if password file exists
-    if (!fs.existsSync('./.password')) {
+    if (!fs.existsSync(getPasswordPath())) {
       // No password set - redirect to login page
       if (req.method === 'GET' && req.path === '/status') {
         res.redirect('/login');
@@ -52,7 +53,7 @@ app.use(function (req, res, next) {
     }
     
     // Verify access code
-    const storedPassword = fs.readFileSync('./.password').toString();
+    const storedPassword = fs.readFileSync(getPasswordPath()).toString();
     const providedPassword = req.headers['access-code'] || req.query['access-code'];
     
     if (providedPassword !== storedPassword) {

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { getPasswordPath } = require('../utils/password-path.js');
 
 const getHtmlContent = () => {
     let content = (fs.readFileSync('./html/status.html')).toString();
@@ -10,14 +11,14 @@ const keyth = require('keythereum');
 const status = (app, environement) => {
     app.get('/status', async (req, res) => {
         // Check if password exists
-        if (!fs.existsSync('./.password')) {
+        if (!fs.existsSync(getPasswordPath())) {
             // First time - redirect to login
             return res.redirect('/login');
         }
 
         // Check if user is authenticated via header
         const accessCode = req.headers['access-code'] || req.query['access-code'];
-        const storedPassword = fs.readFileSync('./.password').toString();
+        const storedPassword = fs.readFileSync(getPasswordPath()).toString();
         
         // If no access code provided, serve the HTML (it will check sessionStorage)
         // If access code is provided but wrong, return error

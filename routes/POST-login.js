@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { getPasswordPath } = require('../utils/password-path.js');
 
 // Anti-flood storage (in-memory, per IP)
 const loginAttempts = new Map();
@@ -50,7 +51,7 @@ const login = (app, environement) => {
             });
         }
         
-        const passwordExists = fs.existsSync('./.password');
+        const passwordExists = fs.existsSync(getPasswordPath());
         
         if (isFirstTime && passwordExists) {
             return res.json({
@@ -69,7 +70,10 @@ const login = (app, environement) => {
         if (isFirstTime) {
             // First time setup - create password
             try {
-                fs.writeFileSync('./.password', password);
+                if (!fs.existsSync(getPasswordPath())) {
+                    fs.mkdirSync('./nodes');
+                }
+                fs.writeFileSync(getPasswordPath(), password);
                 environement.password = password;
                 
                 // Clear any attempt data for this IP
@@ -88,7 +92,7 @@ const login = (app, environement) => {
             }
         } else {
             // Login - verify password
-            const storedPassword = fs.readFileSync('./.password').toString();
+            const storedPassword = fs.readFileSync(getPasswordPath()).toString();
             
             if (password === storedPassword) {
                 // Successful login - clear attempts
