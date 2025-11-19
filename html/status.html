@@ -1,43 +1,422 @@
 <html>
     <head>
-        <title>GLQ Nodes</title>
+        <title>GLQ Nodes Dashboard</title>
         <link rel="icon" type="image/png" href="favicon.png">
-        <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
-        <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </head>
     <body>
         <style>
-            .mdc-button {
-                width: 100%;
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
+            
             body {
-                background-color: #182231;
-                color: #ffffff;
-                font-family: helveticaneue,Helvetica,Arial,sans-serif;
+                background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
+                color: #e4e4e7;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                min-height: 100vh;
+                overflow-x: hidden;
             }
+            
+            /* Animated background particles */
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: radial-gradient(circle at 20% 50%, rgba(39, 116, 255, 0.05) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(76, 175, 80, 0.05) 0%, transparent 50%);
+                pointer-events: none;
+                z-index: 0;
+            }
+            
             input {
-                background-color: #182231;
-                color: #ffffff;
-                border: 1px solid #000000;
-                padding: 5px;
-                /* width: 100%; */
+                background-color: #1e2531;
+                color: #e4e4e7;
+                border: 1px solid #2d3748;
+                padding: 10px 14px;
+                border-radius: 8px;
+                font-family: 'Inter', sans-serif;
+                font-size: 14px;
+                transition: all 0.3s ease;
             }
+            
+            input:focus {
+                outline: none;
+                border-color: #2774ff;
+                box-shadow: 0 0 0 3px rgba(39, 116, 255, 0.1);
+            }
+            
             textarea {
-                background-color: #182231;
-                color: #ffffff;
-                border: 1px solid #000000;
-                padding: 5px;
-                /* width: 100%; */
-                /* height: 100%; */
+                background-color: #1e2531;
+                color: #e4e4e7;
+                border: 1px solid #2d3748;
+                padding: 12px;
+                border-radius: 8px;
                 resize: none;
+                font-family: 'Fira Code', 'Courier New', monospace;
+                font-size: 13px;
+                line-height: 1.5;
+                transition: all 0.3s ease;
             }
+            
+            textarea:focus {
+                outline: none;
+                border-color: #2774ff;
+                box-shadow: 0 0 0 3px rgba(39, 116, 255, 0.1);
+            }
+            /* Header Styles */
+            .header {
+                position: relative;
+                z-index: 10;
+                background: linear-gradient(135deg, rgba(30, 37, 49, 0.95) 0%, rgba(24, 34, 49, 0.95) 100%);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(39, 116, 255, 0.2);
+                padding: 20px 40px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            
+            .header-left {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .logo-container {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .logo-container img {
+                height: 45px;
+                filter: drop-shadow(0 0 10px rgba(39, 116, 255, 0.3));
+            }
+            
+            .version-badge {
+                background: linear-gradient(135deg, #2774ff 0%, #1a5acc 100%);
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                box-shadow: 0 2px 8px rgba(39, 116, 255, 0.3);
+            }
+            
+            .header-actions {
+                display: flex;
+                gap: 12px;
+            }
+            
+            .btn-header {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-family: 'Inter', sans-serif;
+            }
+            
+            .btn-settings {
+                background: rgba(39, 116, 255, 0.15);
+                color: #5b9eff;
+                border: 1px solid rgba(39, 116, 255, 0.3);
+            }
+            
+            .btn-settings:hover {
+                background: rgba(39, 116, 255, 0.25);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(39, 116, 255, 0.2);
+            }
+            
+            .btn-logout {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ff6b6b;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+            
+            .btn-logout:hover {
+                background: rgba(239, 68, 68, 0.25);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+            }
+            
+            /* Main Container */
+            .main-container {
+                position: relative;
+                z-index: 1;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 30px 40px;
+            }
+            
+            /* Cards Grid */
+            .cards-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                gap: 24px;
+                margin-bottom: 24px;
+            }
+            
+            .card {
+                background: linear-gradient(135deg, rgba(30, 37, 49, 0.9) 0%, rgba(24, 34, 49, 0.9) 100%);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                padding: 24px;
+                transition: all 0.3s ease;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            }
+            
+            .card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(39, 116, 255, 0.3);
+            }
+            
+            .card-title {
+                font-size: 14px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: #9ca3af;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .card-title i {
+                color: #2774ff;
+            }
+            
+            /* Status Card */
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 24px;
+                border-radius: 12px;
+                font-size: 16px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                animation: pulse 2s ease-in-out infinite;
+            }
+            
+            .status-running {
+                background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(56, 142, 60, 0.2) 100%);
+                color: #4ade80;
+                border: 1px solid rgba(76, 175, 80, 0.4);
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
+            }
+            
+            .status-stopped {
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%);
+                color: #ff6b6b;
+                border: 1px solid rgba(239, 68, 68, 0.4);
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.8; }
+            }
+            
+            .status-indicator {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: currentColor;
+                animation: blink 1.5s ease-in-out infinite;
+            }
+            
+            @keyframes blink {
+                0%, 100% { opacity: 1; box-shadow: 0 0 8px currentColor; }
+                50% { opacity: 0.4; box-shadow: 0 0 4px currentColor; }
+            }
+            
+            /* Stats Grid */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+                margin-top: 20px;
+            }
+            
+            .stat-item {
+                background: rgba(39, 116, 255, 0.05);
+                border: 1px solid rgba(39, 116, 255, 0.15);
+                border-radius: 12px;
+                padding: 16px;
+                text-align: center;
+                transition: all 0.3s ease;
+            }
+            
+            .stat-item:hover {
+                background: rgba(39, 116, 255, 0.1);
+                transform: scale(1.05);
+            }
+            
+            .stat-label {
+                font-size: 11px;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+            }
+            
+            .stat-value {
+                font-size: 24px;
+                font-weight: 700;
+                background: linear-gradient(135deg, #4ade80 0%, #2dd4bf 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
             .customColor {
-                color: #2774ff!important;
+                color: #2774ff !important;
                 user-select: all;
                 cursor: text;
                 text-align: center;
+                font-family: 'Fira Code', monospace;
+                font-size: 13px;
+                padding: 8px 12px;
+                background: rgba(39, 116, 255, 0.1);
+                border-radius: 6px;
+                border: 1px solid rgba(39, 116, 255, 0.2);
             }
+            /* Buttons */
+            .btn {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-family: 'Inter', sans-serif;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .btn::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                transform: translate(-50%, -50%);
+                transition: width 0.6s, height 0.6s;
+            }
+            
+            .btn:hover::before {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .btn span {
+                position: relative;
+                z-index: 1;
+            }
+            
+            .btn-primary {
+                background: linear-gradient(135deg, #2774ff 0%, #1a5acc 100%);
+                color: white;
+                box-shadow: 0 4px 12px rgba(39, 116, 255, 0.3);
+            }
+            
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(39, 116, 255, 0.4);
+            }
+            
+            .btn:disabled,
+            .btn-primary:disabled,
+            .btn-success:disabled,
+            .btn-danger:disabled,
+            .btn-warning:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+                transform: none !important;
+                filter: grayscale(0.6);
+                box-shadow: none !important;
+            }
+            
+            .btn:disabled:hover,
+            .btn-primary:disabled:hover,
+            .btn-success:disabled:hover,
+            .btn-danger:disabled:hover,
+            .btn-warning:disabled:hover {
+                transform: none !important;
+                box-shadow: none !important;
+            }
+            
+            .btn:disabled::before {
+                display: none;
+            }
+            
+            .btn-success {
+                background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+                color: white;
+                box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+            }
+            
+            .btn-success:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4);
+            }
+            
+            .btn-danger {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                color: white;
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            }
+            
+            .btn-danger:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+            }
+            
+            .btn-warning {
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                color: white;
+                box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            }
+            
+            .btn-warning:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+            }
+            
+            .btn-group {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 12px;
+                margin-top: 16px;
+            }
+            
+            /* Modal */
             .modal {
                 display: none;
                 position: fixed;
@@ -47,233 +426,688 @@
                 width: 100%;
                 height: 100%;
                 overflow: auto;
-                background-color: rgba(0,0,0,0.7);
+                background-color: rgba(0, 0, 0, 0.85);
+                backdrop-filter: blur(8px);
+                animation: fadeIn 0.3s ease;
             }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
             .modal-content {
-                background-color: #182231;
-                margin: 5% auto;
-                padding: 20px;
-                border: 2px solid #2774ff;
-                width: 80%;
-                max-width: 800px;
-                border-radius: 8px;
-                max-height: 80vh;
+                background: linear-gradient(135deg, rgba(30, 37, 49, 0.98) 0%, rgba(24, 34, 49, 0.98) 100%);
+                backdrop-filter: blur(20px);
+                margin: 3% auto;
+                padding: 32px;
+                border: 1px solid rgba(39, 116, 255, 0.3);
+                width: 85%;
+                max-width: 900px;
+                border-radius: 20px;
+                max-height: 85vh;
                 overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 1px rgba(39, 116, 255, 0.5);
+                animation: slideUp 0.4s ease;
+            }
+            
+            @keyframes slideUp {
+                from {
+                    transform: translateY(50px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            
+            .modal-content h2 {
+                margin-bottom: 24px;
+                font-size: 24px;
+                font-weight: 700;
+                background: linear-gradient(135deg, #2774ff 0%, #4ade80 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            .modal-content h3 {
+                margin: 20px 0 12px 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: #e4e4e7;
             }
             .close {
-                color: #aaa;
+                color: #9ca3af;
                 float: right;
-                font-size: 28px;
-                font-weight: bold;
+                font-size: 32px;
+                font-weight: 300;
                 cursor: pointer;
+                line-height: 1;
+                transition: all 0.3s ease;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
             }
+            
             .close:hover,
             .close:focus {
                 color: #fff;
+                background: rgba(239, 68, 68, 0.2);
+                transform: rotate(90deg);
             }
+            
             .peer-item {
-                background-color: #223344;
-                padding: 10px;
-                margin: 5px 0;
-                border-radius: 4px;
+                background: linear-gradient(135deg, rgba(39, 116, 255, 0.05) 0%, rgba(39, 116, 255, 0.02) 100%);
+                padding: 16px;
+                margin: 10px 0;
+                border-radius: 12px;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                transition: all 0.3s ease;
             }
+            
+            .peer-item:hover {
+                border-color: rgba(39, 116, 255, 0.3);
+                transform: translateX(4px);
+            }
+            
             .peer-item.trusted {
-                border-left: 4px solid #4CAF50;
+                border-left: 3px solid #4ade80;
+                background: linear-gradient(135deg, rgba(74, 222, 128, 0.08) 0%, rgba(74, 222, 128, 0.02) 100%);
             }
+            
             .peer-enode {
                 flex: 1;
                 word-break: break-all;
-                font-family: monospace;
+                font-family: 'Fira Code', monospace;
                 font-size: 12px;
+                color: #9ca3af;
+                line-height: 1.6;
             }
+            
             .peer-actions {
-                margin-left: 10px;
+                margin-left: 16px;
+                display: flex;
+                gap: 8px;
             }
+            
             .btn-small {
-                padding: 5px 10px;
-                margin: 0 2px;
+                padding: 8px 16px;
+                margin: 0;
                 cursor: pointer;
                 border: none;
-                border-radius: 3px;
-                background-color: #2774ff;
+                border-radius: 8px;
+                background: linear-gradient(135deg, #2774ff 0%, #1a5acc 100%);
                 color: white;
+                font-size: 12px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                font-family: 'Inter', sans-serif;
             }
+            
+            .btn-small:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(39, 116, 255, 0.3);
+            }
+            
             .btn-small.danger {
-                background-color: #ff4444;
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             }
+            
+            .btn-small.danger:hover {
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            }
+            
             .btn-small:disabled {
                 opacity: 0.5;
                 cursor: not-allowed;
+                transform: none;
             }
+            
             .block-info {
-                font-weight: bold;
-                color: #4CAF50;
+                font-weight: 700;
+                color: #4ade80;
+                font-size: 18px;
             }
+            
             .peer-tab {
                 display: inline-block;
-                padding: 10px 20px;
-                margin: 5px;
-                background-color: #223344;
-                border-radius: 4px;
+                padding: 12px 24px;
+                margin: 6px;
+                background: rgba(39, 116, 255, 0.08);
+                border-radius: 10px;
                 cursor: pointer;
+                border: 1px solid rgba(39, 116, 255, 0.2);
+                transition: all 0.3s ease;
+                font-weight: 500;
+                font-size: 14px;
             }
+            
+            .peer-tab:hover {
+                background: rgba(39, 116, 255, 0.15);
+                transform: translateY(-2px);
+            }
+            
             .peer-tab.active {
-                background-color: #2774ff;
+                background: linear-gradient(135deg, #2774ff 0%, #1a5acc 100%);
+                border-color: #2774ff;
+                box-shadow: 0 4px 12px rgba(39, 116, 255, 0.3);
             }
             .file-actions {
-                margin: 15px 0;
-                padding: 15px;
-                background-color: #223344;
-                border-radius: 4px;
+                margin: 20px 0;
+                padding: 20px;
+                background: linear-gradient(135deg, rgba(39, 116, 255, 0.05) 0%, rgba(39, 116, 255, 0.02) 100%);
+                border-radius: 12px;
                 display: flex;
-                gap: 10px;
+                gap: 12px;
                 align-items: center;
                 flex-wrap: wrap;
+                border: 1px solid rgba(39, 116, 255, 0.15);
             }
+            
             .file-upload-input {
                 display: none;
             }
+            
             .btn-file {
-                padding: 8px 16px;
-                background-color: #2774ff;
+                padding: 10px 20px;
+                background: linear-gradient(135deg, #2774ff 0%, #1a5acc 100%);
                 color: white;
                 border: none;
-                border-radius: 4px;
+                border-radius: 10px;
                 cursor: pointer;
                 font-size: 14px;
+                font-weight: 600;
+                font-family: 'Inter', sans-serif;
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 4px 12px rgba(39, 116, 255, 0.2);
             }
+            
             .btn-file:hover {
-                background-color: #1a5acc;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(39, 116, 255, 0.3);
             }
+            
             .btn-file.secondary {
-                background-color: #4CAF50;
+                background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+                box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2);
             }
+            
             .btn-file.secondary:hover {
-                background-color: #45a049;
+                box-shadow: 0 6px 20px rgba(74, 222, 128, 0.3);
             }
+            
             .snapshot-item {
-                background-color: #223344;
-                padding: 15px;
-                margin: 10px 0;
-                border-radius: 4px;
+                background: linear-gradient(135deg, rgba(39, 116, 255, 0.08) 0%, rgba(39, 116, 255, 0.02) 100%);
+                padding: 20px;
+                margin: 12px 0;
+                border-radius: 12px;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                border-left: 4px solid #2774ff;
+                border-left: 3px solid #2774ff;
+                border: 1px solid rgba(39, 116, 255, 0.2);
+                transition: all 0.3s ease;
             }
+            
+            .snapshot-item:hover {
+                border-color: rgba(39, 116, 255, 0.4);
+                transform: translateX(4px);
+                box-shadow: 0 4px 16px rgba(39, 116, 255, 0.15);
+            }
+            
             .snapshot-info {
                 flex: 1;
             }
+            
             .snapshot-name {
-                font-family: monospace;
+                font-family: 'Fira Code', monospace;
                 font-size: 14px;
-                color: #4CAF50;
-                font-weight: bold;
+                color: #4ade80;
+                font-weight: 700;
+                margin-bottom: 8px;
             }
+            
             .snapshot-details {
                 font-size: 12px;
-                color: #aaa;
-                margin-top: 5px;
+                color: #9ca3af;
+                margin-top: 6px;
             }
+            
             .snapshot-actions {
                 display: flex;
-                gap: 5px;
+                gap: 8px;
+            }
+            
+            /* Controls Section */
+            .control-row {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                gap: 16px;
+                align-items: center;
+                margin-bottom: 16px;
+                padding: 16px;
+                background: rgba(39, 116, 255, 0.03);
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .control-label {
+                font-size: 13px;
+                font-weight: 600;
+                color: #9ca3af;
+                min-width: 120px;
+            }
+            
+            .control-content {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            
+            /* Tab Content Animation */
+            #controls-container,
+            #logs-container,
+            #console-container {
+                animation: fadeIn 0.3s ease;
+            }
+            
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            /* Scrollbar Styles */
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+            
+            ::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 10px;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #2774ff 0%, #1a5acc 100%);
+                border-radius: 10px;
+            }
+            
+            ::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(135deg, #3d85ff 0%, #2764dd 100%);
+            }
+            
+            /* Responsive Design */
+            @media (max-width: 1024px) {
+                .main-container {
+                    padding: 20px;
+                }
+                
+                .cards-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .stats-grid {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+                
+                .peer-tab {
+                    padding: 10px 16px;
+                    margin: 4px;
+                    font-size: 13px;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .header {
+                    padding: 16px 20px;
+                    flex-direction: column;
+                    gap: 16px;
+                }
+                
+                .header-left {
+                    width: 100%;
+                    justify-content: center;
+                }
+                
+                .header-actions {
+                    width: 100%;
+                    justify-content: center;
+                }
+                
+                .control-row {
+                    grid-template-columns: 1fr;
+                }
+                
+                .control-label {
+                    min-width: auto;
+                }
+                
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .btn-group {
+                    grid-template-columns: 1fr;
+                }
+                
+                .modal-content {
+                    width: 95%;
+                    padding: 20px;
+                    margin: 10% auto;
+                }
+                
+                .peer-tab {
+                    display: block;
+                    margin: 8px 4px;
+                    padding: 12px;
+                    font-size: 12px;
+                }
+                
+                #main-tabs {
+                    display: flex;
+                    flex-direction: column;
+                }
+            }
+            
+            /* Loading Animation */
+            @keyframes shimmer {
+                0% {
+                    background-position: -1000px 0;
+                }
+                100% {
+                    background-position: 1000px 0;
+                }
+            }
+            
+            .loading {
+                background: linear-gradient(
+                    90deg,
+                    rgba(39, 116, 255, 0.1) 0%,
+                    rgba(39, 116, 255, 0.2) 50%,
+                    rgba(39, 116, 255, 0.1) 100%
+                );
+                background-size: 1000px 100%;
+                animation: shimmer 2s infinite;
+            }
+            
+            /* Alert Styles */
+            .alert {
+                padding: 16px;
+                border-radius: 12px;
+                margin: 16px 0;
+                display: flex;
+                align-items: start;
+                gap: 12px;
+            }
+            
+            .alert-info {
+                background: rgba(39, 116, 255, 0.1);
+                border: 1px solid rgba(39, 116, 255, 0.3);
+                color: #5b9eff;
+            }
+            
+            .alert-success {
+                background: rgba(74, 222, 128, 0.1);
+                border: 1px solid rgba(74, 222, 128, 0.3);
+                color: #4ade80;
+            }
+            
+            .alert-warning {
+                background: rgba(245, 158, 11, 0.1);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                color: #f59e0b;
+            }
+            
+            .alert-danger {
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                color: #ff6b6b;
+            }
+            
+            /* Input Groups */
+            .input-group {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                margin: 12px 0;
+            }
+            
+            .input-group label {
+                font-size: 13px;
+                font-weight: 600;
+                color: #9ca3af;
+                min-width: 120px;
+            }
+            
+            .input-group input,
+            .input-group textarea {
+                flex: 1;
+            }
+            
+            /* Badge */
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+            }
+            
+            .badge-primary {
+                background: rgba(39, 116, 255, 0.2);
+                color: #5b9eff;
+                border: 1px solid rgba(39, 116, 255, 0.3);
+            }
+            
+            .badge-success {
+                background: rgba(74, 222, 128, 0.2);
+                color: #4ade80;
+                border: 1px solid rgba(74, 222, 128, 0.3);
+            }
+            
+            .badge-danger {
+                background: rgba(239, 68, 68, 0.2);
+                color: #ff6b6b;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+            
+            /* Smooth transitions */
+            * {
+                transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            }
+            
+            button, .btn, input, textarea {
+                transition: all 0.3s ease;
             }
         </style>
         <div id="PageStatus" style="display: none;">
-            <table style="width:100%;">
-                <!-- Internal Node -->
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <div class="logo-container">
+                        <img src="logo.png" alt="GLQ Logo"/>
+                        <span class="version-badge">v0.0.15</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-header btn-settings" onclick="showSettingsModal()">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                    <button class="btn-header btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
 
-                <tr>
-                    <td colspan="6" style="color:white;text-align: center;font-size: x-small;">
-                        <img height="50px" src="logo.png"/> <span>v0.0.15</span>
-                        <button onclick="showSettingsModal()" style="position: absolute; left: 20px; top: 20px; padding: 8px 16px; background-color: #2774ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                            ⚙️ Settings
-                        </button>
-                        <button onclick="logout()" style="position: absolute; right: 20px; top: 20px; padding: 8px 16px; background-color: #ff4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                            🚪 Logout
-                        </button>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>NODE STATUS</td>
-                    <td id="node1-status" class="mdc-button mdc-button--outlined customColor"></td>
-                    <td colspan="4"></td>
-                </tr>
-                <tr>
-                    <td>Current Block</td>
-                    <td id="node1-block" class="block-info">0</td>
-                    <td>Peers Connected</td>
-                    <td id="node1-peers-count" class="block-info">0</td>
-                    <td>Gas Price</td>
-                    <td id="node1-gas-price" class="block-info">-</td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <button class="mdc-button mdc-button--raised" onclick="showPeersModal('node1')">
-                            <span class="mdc-button__label">👥 View Peers</span>
-                        </button>
-                    </td>
-                    <td colspan="2">
-                        <button class="mdc-button mdc-button--raised" onclick="showSnapshotsModal('node1')">
-                            <span class="mdc-button__label">📸 Snapshots</span>
-                        </button>
-                    </td>
-                    <td colspan="2">
-                        <button class="mdc-button mdc-button--raised" onclick="showRollbackModal('node1')" style="background-color: #ff9800;">
-                            <span class="mdc-button__label">⚠️ Rollback</span>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Node</td>
-                    <td><button id="node1-button-start" class="mdc-button mdc-button--raised" onclick="startNode1(this)"><span class="mdc-button__label">Start</span></button></td>
-                    <td><button id="node1-button-stop" class="mdc-button mdc-button--raised" onclick="stopNode1(this)"><span class="mdc-button__label">Stop</span></button></td>
-                    <td style="text-align: right;margin-right:10px;">Node Wallet Password:</td>
-                    <td><input id="node1-keystore-password" type="password" style="width:100%"></td>
-                </tr>
-                <tr>
-                    <td>EthStats</td>
-                    <td><button id="ethStats-button-start" class="mdc-button mdc-button--raised" onclick="startEthStats(this)"><span class="mdc-button__label">Start</span></button></td>
-                    <td><button id="ethStats-button-stop" class="mdc-button mdc-button--raised" onclick="stopEthStats(this)"><span class="mdc-button__label">Stop</span></button></td>
-                    <td style="text-align: right;margin-right:10px;">EthStats Server Url:</td>
-                    <td>
-                        <input id="ethStats-server-url" type="text" style="width:100%"></td>
-                    <td>
-                        <div style="display: grid; grid-template-columns: 30% 70%;">
-                            <div style="text-align: right;margin-right:5px;">Node Name:</div>
-                            <input id="ethStats-node-name" type="text" style="width:100%">
+            <!-- Main Container -->
+            <div class="main-container">
+                <!-- Status and Stats Cards -->
+                <div class="cards-grid">
+                    <!-- Node Status Card -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-server"></i> Node Status
                         </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Mining</td>
-                    <td><button id="node1-button-miner-start" class="mdc-button mdc-button--raised" onclick="startMinerNode1(this)"><span class="mdc-button__label">Start Miner</span></button></td>
-                    <td><button id="node1-button-miner-stop" class="mdc-button mdc-button--raised" onclick="stopMinerNode1(this)"><span class="mdc-button__label">Stop Miner</span></button></td>
-                    <td colspan="3"></td>
-                </tr>
-                <tr>
-                    <td>Address</td>
-                    <td class="customColor">$node1Address</td>
-                </tr>
-                <tr>
-                    <td colspan="3">Node Logs</td>
-                    <td colspan="3">IPC Console</td>
-                </tr>
-                <tr style="width:100%; height: 200px;">
-                    <td colspan="3" style="width:50%; height: 200px;position: relative;">
-                        <textarea id="node1-logs" style="width:100%; height: 200px;" readonly></textarea>
-                    </td>
-                    <td colspan="3" style="width:50%; height: 200px;">
-                        <textarea id="node1-ipc-logs" style="width:100%; height: 160px;" readonly></textarea>
-                        <input id="node1-ipc-input" type="text" placeholder="admin" style="width:100%; height: 25px;margin-top: 15px;" />
-                    </td>
-                </tr>
-            </table>
+                        <div id="node1-status" class="status-badge status-stopped">
+                            <span class="status-indicator"></span>
+                            <span>STOPPED</span>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">Current Block</div>
+                                <div id="node1-block" class="stat-value">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Peers</div>
+                                <div id="node1-peers-count" class="stat-value">0</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Gas Price</div>
+                                <div id="node1-gas-price" class="stat-value" style="font-size: 14px;">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Card -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-bolt"></i> Quick Actions
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="showPeersModal('node1')">
+                                <i class="fas fa-users"></i>
+                                <span>View Peers</span>
+                        </button>
+                            <button class="btn btn-success" onclick="showSnapshotsModal('node1')">
+                                <i class="fas fa-camera"></i>
+                                <span>Snapshots</span>
+                        </button>
+                            <button class="btn btn-warning" onclick="showRollbackModal('node1')">
+                                <i class="fas fa-history"></i>
+                                <span>Rollback</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Node Address Card -->
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-wallet"></i> Node Address
+                        </div>
+                        <div class="customColor" style="margin-top: 8px;">$node1Address</div>
+                    </div>
+                </div>
+
+                <!-- Main Tabs Card -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <!-- Tab Navigation -->
+                    <div id="main-tabs" style="margin-bottom: 24px; text-align: center; border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 8px;">
+                        <div class="peer-tab active" onclick="switchMainTab('controls')" id="tab-controls">
+                            <i class="fas fa-sliders-h"></i> Node Controls
+                        </div>
+                        <div class="peer-tab" onclick="switchMainTab('logs')" id="tab-logs">
+                            <i class="fas fa-terminal"></i> Node Logs
+                        </div>
+                        <div class="peer-tab" onclick="switchMainTab('console')" id="tab-console">
+                            <i class="fas fa-code"></i> IPC Console
+                        </div>
+                    </div>
+
+                    <!-- Controls Tab -->
+                    <div id="controls-container" style="display: block;">
+                        <!-- Node Control -->
+                        <div class="control-row">
+                            <div class="control-label">Node</div>
+                            <div class="control-content">
+                                <button id="node1-button-start" class="btn btn-success" onclick="startNode1(this)">
+                                    <i class="fas fa-play"></i>
+                                    <span>Start</span>
+                        </button>
+                                <button id="node1-button-stop" class="btn btn-danger" onclick="stopNode1(this)">
+                                    <i class="fas fa-stop"></i>
+                                    <span>Stop</span>
+                        </button>
+                                <label style="color: #9ca3af; margin-left: 16px; font-size: 13px;">Password:</label>
+                                <input id="node1-keystore-password" type="password" style="flex: 1; min-width: 200px;" placeholder="Enter wallet password">
+                            </div>
+                        </div>
+
+                        <!-- Mining Control -->
+                        <div class="control-row">
+                            <div class="control-label">Mining</div>
+                            <div class="control-content">
+                                <button id="node1-button-miner-start" class="btn btn-success" onclick="startMinerNode1(this)">
+                                    <i class="fas fa-hammer"></i>
+                                    <span>Start Miner</span>
+                        </button>
+                                <button id="node1-button-miner-stop" class="btn btn-danger" onclick="stopMinerNode1(this)">
+                                    <i class="fas fa-stop-circle"></i>
+                                    <span>Stop Miner</span>
+                                </button>
+                        </div>
+                        </div>
+
+                        <!-- EthStats Control -->
+                        <div class="control-row">
+                            <div class="control-label">EthStats</div>
+                            <div class="control-content">
+                                <button id="ethStats-button-start" class="btn btn-success" onclick="startEthStats(this)">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Start</span>
+                                </button>
+                                <button id="ethStats-button-stop" class="btn btn-danger" onclick="stopEthStats(this)">
+                                    <i class="fas fa-stop"></i>
+                                    <span>Stop</span>
+                                </button>
+                                <input id="ethStats-server-url" type="text" placeholder="Server URL" style="flex: 1; min-width: 200px;">
+                                <input id="ethStats-node-name" type="text" placeholder="Node Name" style="flex: 1; min-width: 150px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logs Tab -->
+                    <div id="logs-container" style="display: none;">
+                        <div style="background: linear-gradient(135deg, rgba(30, 37, 49, 0.9) 0%, rgba(24, 34, 49, 0.9) 100%); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
+                            <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-terminal" style="color: #2774ff;"></i> Node Logs
+                            </div>
+                            <textarea id="node1-logs" style="width:100%; height: 600px;" readonly></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Console Tab -->
+                    <div id="console-container" style="display: none;">
+                        <div style="background: linear-gradient(135deg, rgba(30, 37, 49, 0.9) 0%, rgba(24, 34, 49, 0.9) 100%); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
+                            <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-code" style="color: #2774ff;"></i> IPC Console
+                            </div>
+                            <textarea id="node1-ipc-logs" style="width:100%; height: 560px;" readonly></textarea>
+                            <input id="node1-ipc-input" type="text" placeholder="Enter IPC command (e.g., admin.peers)" style="width:100%; margin-top: 12px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Peers Modal -->
@@ -282,36 +1116,44 @@
                 <span class="close" onclick="closePeersModal()">&times;</span>
                 <h2 id="modal-title">Node Peers</h2>
                 
-                <div id="peer-tabs" style="margin: 20px 0;">
-                    <div class="peer-tab active" onclick="switchPeerTab('connected')" id="tab-connected">Connected Peers</div>
-                    <div class="peer-tab" onclick="switchPeerTab('static')" id="tab-static">Static Peers</div>
-                    <div class="peer-tab" onclick="switchPeerTab('trusted')" id="tab-trusted">Trusted Peers</div>
+                <div id="peer-tabs" style="margin: 20px 0; text-align: center;">
+                    <div class="peer-tab active" onclick="switchPeerTab('connected')" id="tab-connected">
+                        <i class="fas fa-plug"></i> Connected Peers
+                    </div>
+                    <div class="peer-tab" onclick="switchPeerTab('static')" id="tab-static">
+                        <i class="fas fa-network-wired"></i> Static Peers
+                    </div>
+                    <div class="peer-tab" onclick="switchPeerTab('trusted')" id="tab-trusted">
+                        <i class="fas fa-shield-alt"></i> Trusted Peers
+                    </div>
                 </div>
 
                 <div id="connected-peers-container" style="display: block;">
-                    <h3>Connected Peers</h3>
+                    <h3><i class="fas fa-plug"></i> Connected Peers</h3>
                     <div id="connected-peers-list"></div>
                 </div>
 
                 <div id="static-peers-container" style="display: none;">
-                    <h3>Static Peers</h3>
+                    <h3><i class="fas fa-network-wired"></i> Static Peers</h3>
                     <div class="file-actions">
                         <button class="btn-file" onclick="downloadStaticPeers()">
-                            📥 Download static-nodes.json
+                            <i class="fas fa-download"></i> Download static-nodes.json
                         </button>
                         <label for="static-upload" class="btn-file secondary">
-                            📤 Upload static-nodes.json
+                            <i class="fas fa-upload"></i> Upload static-nodes.json
                         </label>
                         <input type="file" id="static-upload" class="file-upload-input" accept=".json" onchange="uploadStaticPeers(event)">
                     </div>
                     
-                    <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                        <h4 style="margin-top: 0;">Add Peers Manually</h4>
+                    <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(74, 222, 128, 0.05) 0%, rgba(74, 222, 128, 0.02) 100%); border-radius: 12px; border: 1px solid rgba(74, 222, 128, 0.2);">
+                        <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-plus-circle" style="color: #4ade80;"></i> Add Peers Manually
+                        </h4>
                         <textarea id="manual-static-peers" 
                                   placeholder="Enter enode URLs (one per line)&#10;Example:&#10;enode://abc123...@1.2.3.4:30303&#10;enode://def456...@5.6.7.8:30303"
-                                  style="width: 100%; min-height: 120px; padding: 10px; margin: 10px 0; background: #1a1a2e; color: #e0e0e0; border: 1px solid #333; border-radius: 4px; font-family: monospace; font-size: 13px; resize: vertical;"></textarea>
-                        <button class="btn-file" onclick="addStaticPeersManually()" style="background: #4CAF50;">
-                            ➕ Add Peers
+                                  style="width: 100%; min-height: 120px; margin: 10px 0; resize: vertical;"></textarea>
+                        <button class="btn-file secondary" onclick="addStaticPeersManually()">
+                            <i class="fas fa-plus"></i> Add Peers
                         </button>
                     </div>
                     
@@ -319,13 +1161,13 @@
                 </div>
 
                 <div id="trusted-peers-container" style="display: none;">
-                    <h3>Trusted Peers</h3>
+                    <h3><i class="fas fa-shield-alt"></i> Trusted Peers</h3>
                     <div class="file-actions">
                         <button class="btn-file" onclick="downloadTrustedPeers()">
-                            📥 Download trusted-nodes.json
+                            <i class="fas fa-download"></i> Download trusted-nodes.json
                         </button>
                         <label for="trusted-upload" class="btn-file secondary">
-                            📤 Upload trusted-nodes.json
+                            <i class="fas fa-upload"></i> Upload trusted-nodes.json
                         </label>
                         <input type="file" id="trusted-upload" class="file-upload-input" accept=".json" onchange="uploadTrustedPeers(event)">
                     </div>
@@ -338,35 +1180,47 @@
         <div id="snapshotsModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeSnapshotsModal()">&times;</span>
-                <h2 id="snapshot-modal-title">Node Snapshots</h2>
+                <h2 id="snapshot-modal-title"><i class="fas fa-camera"></i> Node Snapshots</h2>
                 
-                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                    <h4 style="margin-top: 0;">Create New Snapshot</h4>
-                    <button class="btn-file" onclick="createSnapshot()" id="create-snapshot-btn" style="background: #4CAF50;">
-                        📸 Create Snapshot
+                <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(74, 222, 128, 0.05) 0%, rgba(74, 222, 128, 0.02) 100%); border-radius: 12px; border: 1px solid rgba(74, 222, 128, 0.2);">
+                    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-camera-retro" style="color: #4ade80;"></i> Create New Snapshot
+                    </h4>
+                    <button class="btn-file secondary" onclick="createSnapshot()" id="create-snapshot-btn">
+                        <i class="fas fa-camera"></i> Create Snapshot
                     </button>
-                    <div id="snapshot-creation-status" style="margin-top: 10px; display: none;">
-                        <div style="color: #4CAF50;">Creating snapshot, please wait...</div>
-                        <div style="margin-top: 5px; color: #aaa; font-size: 12px;">This may take several minutes depending on the blockchain size.</div>
+                    <div id="snapshot-creation-status" class="alert alert-success" style="margin-top: 12px; display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <div>
+                            <div style="font-weight: 600;">Creating snapshot, please wait...</div>
+                            <div style="margin-top: 4px; font-size: 12px; opacity: 0.8;">This may take several minutes depending on the blockchain size.</div>
+                        </div>
                     </div>
                 </div>
 
-                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                    <h4 style="margin-top: 0;">Upload Snapshot</h4>
-                    <label for="snapshot-upload" class="btn-file secondary">
-                        📤 Upload Snapshot File
+                <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(39, 116, 255, 0.05) 0%, rgba(39, 116, 255, 0.02) 100%); border-radius: 12px; border: 1px solid rgba(39, 116, 255, 0.2);">
+                    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-cloud-upload-alt" style="color: #2774ff;"></i> Upload Snapshot
+                    </h4>
+                    <label for="snapshot-upload" class="btn-file">
+                        <i class="fas fa-upload"></i> Upload Snapshot File
                     </label>
                     <input type="file" id="snapshot-upload" class="file-upload-input" accept=".tar.gz,.tgz" onchange="uploadSnapshot(event)">
-                    <div id="snapshot-upload-status" style="margin-top: 10px; display: none;">
-                        <div style="color: #4CAF50;">Uploading snapshot...</div>
-                        <div style="margin-top: 5px; color: #aaa; font-size: 12px;">Please wait while the file is being uploaded.</div>
+                    <div id="snapshot-upload-status" class="alert alert-info" style="margin-top: 12px; display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <div>
+                            <div style="font-weight: 600;">Uploading snapshot...</div>
+                            <div style="margin-top: 4px; font-size: 12px; opacity: 0.8;">Please wait while the file is being uploaded.</div>
+                        </div>
                     </div>
                 </div>
 
                 <div style="margin: 20px 0;">
-                    <h3>Available Snapshots</h3>
+                    <h3><i class="fas fa-list"></i> Available Snapshots</h3>
                     <div id="snapshots-list">
-                        <p>Loading...</p>
+                        <p style="text-align: center; color: #9ca3af; padding: 20px;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                        </p>
                     </div>
                 </div>
             </div>
@@ -376,87 +1230,97 @@
         <div id="settingsModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeSettingsModal()">&times;</span>
-                <h2>⚙️ Node Settings</h2>
+                <h2><i class="fas fa-cog"></i> Node Settings</h2>
                 
-                <div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                    <h3 style="margin-top: 0; color: #2774ff;">Log Level</h3>
+                <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(39, 116, 255, 0.05) 0%, rgba(39, 116, 255, 0.02) 100%); border-radius: 12px; border: 1px solid rgba(39, 116, 255, 0.2);">
+                    <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-file-alt" style="color: #2774ff;"></i> Log Level
+                    </h3>
                     <div style="margin: 15px 0;">
-                        <label style="display: block; margin-bottom: 5px;">Verbosity (0-5):</label>
-                        <input type="number" id="setting-verbosity" min="0" max="5" value="3" style="width: 100px; padding: 8px;">
-                        <span style="margin-left: 10px; color: #aaa; font-size: 12px;">Higher = More detailed logs</span>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">Verbosity (0-5):</label>
+                        <input type="number" id="setting-verbosity" min="0" max="5" value="3" style="width: 120px; padding: 10px;">
+                        <span style="margin-left: 10px; color: #9ca3af; font-size: 12px;">Higher = More detailed logs</span>
                     </div>
                 </div>
 
-                <div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                    <h3 style="margin-top: 0; color: #2774ff;">Network Ports</h3>
+                <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(74, 222, 128, 0.05) 0%, rgba(74, 222, 128, 0.02) 100%); border-radius: 12px; border: 1px solid rgba(74, 222, 128, 0.2);">
+                    <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-network-wired" style="color: #4ade80;"></i> Network Ports
+                    </h3>
                     
-                    <div style="margin: 15px 0; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                    <div style="margin: 15px 0; padding: 16px; background: rgba(39, 116, 255, 0.05); border-radius: 10px; border: 1px solid rgba(39, 116, 255, 0.1);">
                         <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="setting-http-enabled" style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer;">
-                            <span style="flex: 1;"><strong>HTTP RPC</strong></span>
+                            <input type="checkbox" id="setting-http-enabled" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #2774ff;">
+                            <span style="flex: 1; font-weight: 600;">HTTP RPC</span>
                         </label>
-                        <div style="margin-left: 30px; margin-top: 10px;">
-                            <label>Port: <input type="number" id="setting-http-port" value="8545" style="width: 100px; padding: 5px; margin-left: 10px;"></label>
+                        <div style="margin-left: 32px; margin-top: 12px;">
+                            <label style="font-size: 13px; color: #9ca3af;">Port: <input type="number" id="setting-http-port" value="8545" style="width: 120px; padding: 8px; margin-left: 10px;"></label>
                         </div>
                     </div>
 
-                    <div style="margin: 15px 0; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                    <div style="margin: 15px 0; padding: 16px; background: rgba(39, 116, 255, 0.05); border-radius: 10px; border: 1px solid rgba(39, 116, 255, 0.1);">
                         <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="setting-ws-enabled" style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer;">
-                            <span style="flex: 1;"><strong>WebSocket RPC</strong></span>
+                            <input type="checkbox" id="setting-ws-enabled" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #2774ff;">
+                            <span style="flex: 1; font-weight: 600;">WebSocket RPC</span>
                         </label>
-                        <div style="margin-left: 30px; margin-top: 10px;">
-                            <label>Port: <input type="number" id="setting-ws-port" value="8546" style="width: 100px; padding: 5px; margin-left: 10px;"></label>
+                        <div style="margin-left: 32px; margin-top: 12px;">
+                            <label style="font-size: 13px; color: #9ca3af;">Port: <input type="number" id="setting-ws-port" value="8546" style="width: 120px; padding: 8px; margin-left: 10px;"></label>
                         </div>
                     </div>
 
-                    <div style="margin: 15px 0; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                    <div style="margin: 15px 0; padding: 16px; background: rgba(39, 116, 255, 0.05); border-radius: 10px; border: 1px solid rgba(39, 116, 255, 0.1);">
                         <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="setting-authrpc-enabled" style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer;">
-                            <span style="flex: 1;"><strong>Auth RPC</strong></span>
+                            <input type="checkbox" id="setting-authrpc-enabled" style="margin-right: 12px; width: 20px; height: 20px; cursor: pointer; accent-color: #2774ff;">
+                            <span style="flex: 1; font-weight: 600;">Auth RPC</span>
                         </label>
-                        <div style="margin-left: 30px; margin-top: 10px;">
-                            <label>Port: <input type="number" id="setting-authrpc-port" value="8551" style="width: 100px; padding: 5px; margin-left: 10px;"></label>
+                        <div style="margin-left: 32px; margin-top: 12px;">
+                            <label style="font-size: 13px; color: #9ca3af;">Port: <input type="number" id="setting-authrpc-port" value="8551" style="width: 120px; padding: 8px; margin-left: 10px;"></label>
                         </div>
                     </div>
 
-                    <div style="margin: 15px 0; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
-                        <label style="display: block; margin-bottom: 5px;"><strong>P2P Port:</strong></label>
-                        <input type="number" id="setting-p2p-port" value="30311" style="width: 100px; padding: 5px;">
+                    <div style="margin: 15px 0; padding: 16px; background: rgba(39, 116, 255, 0.05); border-radius: 10px; border: 1px solid rgba(39, 116, 255, 0.1);">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">P2P Port:</label>
+                        <input type="number" id="setting-p2p-port" value="30311" style="width: 120px; padding: 10px;">
                     </div>
                 </div>
 
-                <div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                    <h3 style="margin-top: 0; color: #2774ff;">Mining Settings</h3>
+                <div style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%); border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2);">
+                    <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-hammer" style="color: #f59e0b;"></i> Mining Settings
+                    </h3>
                     
                     <div style="margin: 15px 0;">
-                        <label style="display: block; margin-bottom: 5px;">Gas Price (wei):</label>
-                        <input type="text" id="setting-gasprice" value="100000000" style="width: 200px; padding: 8px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">Gas Price (wei):</label>
+                        <input type="text" id="setting-gasprice" value="100000000" style="width: 220px; padding: 10px;">
                     </div>
 
                     <div style="margin: 15px 0;">
-                        <label style="display: block; margin-bottom: 5px;">TX Fee Cap:</label>
-                        <input type="text" id="setting-txfeecap" value="100000" style="width: 200px; padding: 8px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">TX Fee Cap:</label>
+                        <input type="text" id="setting-txfeecap" value="100000" style="width: 220px; padding: 10px;">
                     </div>
 
                     <div style="margin: 15px 0;">
-                        <label style="display: block; margin-bottom: 5px;">TX Pool Price Limit:</label>
-                        <input type="text" id="setting-pricelimit" value="100" style="width: 200px; padding: 8px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">TX Pool Price Limit:</label>
+                        <input type="text" id="setting-pricelimit" value="100" style="width: 220px; padding: 10px;">
                     </div>
                 </div>
 
-                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 152, 0, 0.1); border: 2px solid #ff9800; border-radius: 8px;">
-                    <p style="margin: 0; color: #ffaa00;">
-                        ⚠️ <strong>Note:</strong> Changing settings requires restarting the node to take effect.
-                    </p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <div style="font-weight: 600;">Important Notice</div>
+                        <div style="margin-top: 4px; font-size: 13px; opacity: 0.9;">Changing settings requires restarting the node to take effect.</div>
+                    </div>
                 </div>
 
-                <div style="margin: 20px 0; text-align: center;">
-                    <button class="btn-file" onclick="saveSettings()" style="background: #4CAF50; font-size: 16px; padding: 15px 30px;">
-                        💾 Save Settings
+                <div style="margin: 24px 0; text-align: center; display: flex; gap: 12px; justify-content: center;">
+                    <button class="btn btn-success" onclick="saveSettings()" style="font-size: 15px; padding: 14px 32px;">
+                        <i class="fas fa-save"></i>
+                        <span>Save Settings</span>
                     </button>
-                    <button class="btn-file secondary" onclick="closeSettingsModal()" style="background: #666; margin-left: 10px; font-size: 16px; padding: 15px 30px;">
-                        ❌ Cancel
+                    <button class="btn btn-danger" onclick="closeSettingsModal()" style="font-size: 15px; padding: 14px 32px; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">
+                        <i class="fas fa-times"></i>
+                        <span>Cancel</span>
                     </button>
                 </div>
             </div>
@@ -466,16 +1330,25 @@
         <div id="rollbackModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeRollbackModal()">&times;</span>
-                <h2 id="rollback-modal-title" style="color: #ff9800;">⚠️ Rollback Node</h2>
+                <h2 id="rollback-modal-title" style="background: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    <i class="fas fa-exclamation-triangle"></i> Rollback Node
+                </h2>
                 
-                <div style="margin: 20px 0; padding: 20px; background: rgba(255, 152, 0, 0.1); border: 2px solid #ff9800; border-radius: 8px;">
-                    <h3 style="color: #ff9800; margin-top: 0;">⚠️ WARNING - IRREVERSIBLE ACTION</h3>
-                    <p style="font-size: 16px; line-height: 1.6;">
+                <div class="alert alert-warning" style="margin: 20px 0;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 24px;"></i>
+                    <div>
+                        <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">WARNING - IRREVERSIBLE ACTION</div>
+                        <p style="font-size: 15px; line-height: 1.6; margin: 8px 0;">
                         You are about to perform a <strong>rollback of 1 block backwards</strong> on this node.
                     </p>
-                    <div style="background: rgba(255, 0, 0, 0.2); padding: 15px; border-left: 4px solid #ff0000; margin: 15px 0;">
-                        <h4 style="color: #ff5555; margin-top: 0;">⚠️ Risks and Consequences:</h4>
-                        <ul style="line-height: 1.8; color: #ffcccc;">
+                    </div>
+                </div>
+                
+                <div class="alert alert-danger" style="margin: 20px 0;">
+                    <i class="fas fa-skull-crossbones" style="font-size: 24px;"></i>
+                    <div>
+                        <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700;">Risks and Consequences:</h4>
+                        <ul style="line-height: 1.8; margin: 0; padding-left: 20px; font-size: 14px;">
                             <li><strong>This action is IRREVERSIBLE</strong> - you will not be able to undo this operation</li>
                             <li>The last block of the blockchain will be <strong>permanently deleted</strong></li>
                             <li>All transactions in the deleted block will be <strong>lost</strong></li>
@@ -484,72 +1357,102 @@
                             <li>Risk of <strong>fork</strong> if other nodes do not perform the rollback</li>
                         </ul>
                     </div>
-                    <p style="font-size: 14px; color: #ffaa00; margin-top: 15px;">
-                        ℹ️ <strong>Recommendation:</strong> Make sure you have created a snapshot before proceeding with the rollback.
-                    </p>
                 </div>
 
-                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; text-align: center;">
-                    <p style="font-size: 14px; margin-bottom: 20px;">
+                <div class="alert alert-info" style="margin: 20px 0;">
+                    <i class="fas fa-info-circle" style="font-size: 20px;"></i>
+                    <div>
+                        <div style="font-weight: 600;">Recommendation:</div>
+                        <div style="margin-top: 4px; font-size: 13px;">Make sure you have created a snapshot before proceeding with the rollback.</div>
+                    </div>
+                </div>
+
+                <div style="margin: 24px 0; padding: 24px; background: rgba(255, 255, 255, 0.02); border-radius: 12px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <p style="font-size: 15px; margin-bottom: 20px; color: #e4e4e7;">
                         Are you sure you want to continue with the rollback?
                     </p>
-                    <button class="btn-file" onclick="executeRollback()" id="execute-rollback-btn" style="background: #ff5555; font-size: 16px; padding: 15px 30px;">
-                        🔄 Rollback of 1 Block
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button class="btn btn-danger" onclick="executeRollback()" id="execute-rollback-btn" style="font-size: 15px; padding: 14px 32px;">
+                            <i class="fas fa-history"></i>
+                            <span>Rollback 1 Block</span>
                     </button>
-                    <button class="btn-file secondary" onclick="closeRollbackModal()" style="background: #666; margin-left: 10px; font-size: 16px; padding: 15px 30px;">
-                        ❌ Cancel
+                        <button class="btn" onclick="closeRollbackModal()" style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); font-size: 15px; padding: 14px 32px;">
+                            <i class="fas fa-times"></i>
+                            <span>Cancel</span>
                     </button>
-                    <div id="rollback-status" style="margin-top: 15px; display: none;">
-                        <div style="color: #4CAF50;" id="rollback-status-message">Executing rollback...</div>
+                    </div>
+                    <div id="rollback-status" class="alert alert-success" style="margin-top: 20px; display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <div id="rollback-status-message">Executing rollback...</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="PageSetup" style="display: none;">
-            <table style="width:100%;">
-                <tr>
-                    <td style="text-align:center;"><h1>Setup Nodes</h1></td>
-                </tr>
-                <tr style="width:100%; height: 100px;">
-                    <td style="width:100%; height: 100px;">
-                        <h3>NODE 1 (Internal Node Miner): </h3>
-                        <table style="width:100%;">
-                            <tr style="width:100%;">
-                                <td>
-                                    <input id="node1PrivateKey" type="text" placeholder="privateKey" style="width:100%; height: 25px;margin-top: 2px;" />
-                                </td>
-                                <td>
-                                    <input id="node1Password" type="text" placeholder="new password" style="width:100%; height: 25px;margin-top: 2px;" />
-                                </td>
-                            </tr>
-                            <tr style="width:100%;">
-                                <td style="text-align: center;" colspan="2">
-                                    <button onclick="generateKeyStore(1)">Generate KeyStore</button>
-                                </td>
-                            </tr>
-                            <tr style="width:100%;">
-                                <td style="text-align: center;" colspan="2">OR</td>
-                            </tr>
-                            <tr style="width:100%;">
-                                <td colspan="2">
-                                    <input id="node1KeyStore" type="text" placeholder="keystore for Miner" style="width:100%; height: 25px;margin-top: 2px;" />
-                                </td>
-                            </tr>
-                        </table>
-                        Please save your password on another device for more security. You will be asked for it every time you start a node.
-                    </td>
-                </tr>
-                <tr style="width:100%; height: 2px;background-color: black;">
-                    <td><div></div></td>
-                </tr>
+            <div class="header">
+                <div class="header-left">
+                    <div class="logo-container">
+                        <img src="logo.png" alt="GLQ Logo"/>
+                        <span class="version-badge">v0.0.15</span>
+                    </div>
+                </div>
+            </div>
 
-                <tr style="width:100%; height: 100px;">
-                    <td style="width:100%; height: 100px;">
-                        <button onclick="fire()" style="width: 100%;" >Fire!</button>
-                    </td>
-                </tr>
-            </table>
+            <div class="main-container" style="max-width: 800px;">
+                <div class="card" style="margin-top: 40px;">
+                    <div style="text-align: center; margin-bottom: 32px;">
+                        <h1 style="font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #2774ff 0%, #4ade80 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;">
+                            <i class="fas fa-rocket"></i> Setup Your Node
+                        </h1>
+                        <p style="color: #9ca3af; font-size: 14px;">Configure your GLQ Internal Node Miner</p>
+                    </div>
+
+                    <div style="background: rgba(39, 116, 255, 0.05); border: 1px solid rgba(39, 116, 255, 0.2); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                        <h3 style="font-size: 18px; font-weight: 600; color: #e4e4e7; margin-bottom: 16px;">
+                            <i class="fas fa-key"></i> Generate New Keystore
+                        </h3>
+                        <div style="display: grid; gap: 12px; margin-bottom: 16px;">
+                            <input id="node1PrivateKey" type="text" placeholder="Enter private key" style="width:100%;" />
+                            <input id="node1Password" type="password" placeholder="Enter new password" style="width:100%;" />
+                        </div>
+                        <button class="btn btn-primary" onclick="generateKeyStore(1)" style="width: 100%;">
+                            <i class="fas fa-cog"></i>
+                            <span>Generate KeyStore</span>
+                        </button>
+                    </div>
+
+                    <div style="text-align: center; margin: 24px 0; color: #9ca3af; font-weight: 600; font-size: 14px; position: relative;">
+                        <span style="background: linear-gradient(135deg, rgba(30, 37, 49, 0.9) 0%, rgba(24, 34, 49, 0.9) 100%); padding: 0 16px; position: relative; z-index: 1;">OR</span>
+                        <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+                    </div>
+
+                    <div style="background: rgba(74, 222, 128, 0.05); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                        <h3 style="font-size: 18px; font-weight: 600; color: #e4e4e7; margin-bottom: 16px;">
+                            <i class="fas fa-file-import"></i> Import Existing Keystore
+                        </h3>
+                        <textarea id="node1KeyStore" placeholder="Paste your keystore JSON here..." style="width:100%; min-height: 120px; font-family: 'Fira Code', monospace; font-size: 12px;"></textarea>
+                    </div>
+
+                    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                        <div style="display: flex; gap: 12px; align-items: start;">
+                            <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 20px; margin-top: 2px;"></i>
+                            <div>
+                                <div style="font-weight: 600; color: #f59e0b; margin-bottom: 4px;">Security Notice</div>
+                                <div style="font-size: 13px; color: #9ca3af; line-height: 1.5;">
+                                    Please save your password securely. You will be asked for it every time you start the node. 
+                                    We recommend storing it in a password manager or secure location.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="fire()" style="width: 100%; font-size: 16px; padding: 16px;">
+                        <i class="fas fa-rocket"></i>
+                        <span>Launch Node Setup</span>
+                    </button>
+                </div>
+            </div>
         </div>
         <script>
             let setup = $setup;
@@ -641,10 +1544,17 @@
                 let node1ButtonMinerStart = document.getElementById('node1-button-miner-start');
                 let node1ButtonMinerStop = document.getElementById('node1-button-miner-stop');
 
-                node1Status.innerText = jsonData.node1.status == '1' ? 'RUNNING' : 'STOPPED';
+                // Update status badge
+                const isRunning = jsonData.node1.status == '1';
+                const isMining = jsonData.node1.mining == '1';
+                
+                node1Status.className = isRunning ? 'status-badge status-running' : 'status-badge status-stopped';
+                node1Status.innerHTML = `<span class="status-indicator"></span><span>${isRunning ? 'RUNNING' : 'STOPPED'}</span>`;
+                
                 node1Block.innerText = jsonData.node1.currentBlock || 0;
                 node1PeersCount.innerText = jsonData.node1.peersCount || 0;
                 node1GasPrice.innerText = jsonData.node1.gasPrice ? formatGasPrice(jsonData.node1.gasPrice) : '-';
+                
                 if (compareIt(node1Logs.innerHTML, jsonData.node1.logs.join('\n'))) {
                     node1Logs.innerHTML = jsonData.node1.logs.join('\n');
                     scrollLogToBottom(node1Logs);
@@ -653,25 +1563,28 @@
                     node1ipcLogs.innerHTML = jsonData.node1.ipcLogs.join('\n');
                     scrollLogToBottom(node1ipcLogs);
                 }
-                node1ButtonStart.disabled = jsonData.node1.status == '1';
-                node1ButtonStop.disabled = jsonData.node1.status == '0';
-                node1ButtonMinerStart.disabled = jsonData.node1.mining == '1';
-                node1ButtonMinerStop.disabled = jsonData.node1.mining == '0';
+                
+                // Disable/enable node control buttons based on status
+                node1ButtonStart.disabled = isRunning;
+                node1ButtonStop.disabled = !isRunning;
+                
+                // Disable/enable miner buttons based on node and mining status
+                // Can't start mining if node is not running OR if already mining
+                node1ButtonMinerStart.disabled = !isRunning || isMining;
+                // Can't stop mining if node is not running OR if not mining
+                node1ButtonMinerStop.disabled = !isRunning || !isMining;
 
                 // Store peer data
                 currentPeerData.node1.staticPeers = jsonData.node1.staticPeers || [];
                 currentPeerData.node1.trustedPeers = jsonData.node1.trustedPeers || [];
 
+                // Disable/enable EthStats buttons based on status
                 let ethStatsButtonStart = document.getElementById('ethStats-button-start');
                 let ethStatsButtonStop = document.getElementById('ethStats-button-stop');
 
-                if (jsonData.ethStats.status == '1') {
-                    ethStatsButtonStart.disabled = true;
-                    ethStatsButtonStop.disabled = false;
-                } else {
-                    ethStatsButtonStart.disabled = false;
-                    ethStatsButtonStop.disabled = true;
-                }
+                const isEthStatsRunning = jsonData.ethStats.status == '1';
+                ethStatsButtonStart.disabled = isEthStatsRunning;
+                ethStatsButtonStop.disabled = !isEthStatsRunning;
 
                 let inputEthStatsServerUrl = document.getElementById('ethStats-server-url');
                 if (window.localStorage.getItem('ethstats-server-url') != inputEthStatsServerUrl.value) {
@@ -1140,6 +2053,19 @@
                 document.getElementById('connected-peers-container').style.display = tab === 'connected' ? 'block' : 'none';
                 document.getElementById('static-peers-container').style.display = tab === 'static' ? 'block' : 'none';
                 document.getElementById('trusted-peers-container').style.display = tab === 'trusted' ? 'block' : 'none';
+            }
+
+            function switchMainTab(tab) {
+                // Update tab styles
+                document.getElementById('tab-controls').classList.remove('active');
+                document.getElementById('tab-logs').classList.remove('active');
+                document.getElementById('tab-console').classList.remove('active');
+                document.getElementById(`tab-${tab}`).classList.add('active');
+
+                // Show/hide containers
+                document.getElementById('controls-container').style.display = tab === 'controls' ? 'block' : 'none';
+                document.getElementById('logs-container').style.display = tab === 'logs' ? 'block' : 'none';
+                document.getElementById('console-container').style.display = tab === 'console' ? 'block' : 'none';
             }
 
             async function loadPeersData(nodeName) {
