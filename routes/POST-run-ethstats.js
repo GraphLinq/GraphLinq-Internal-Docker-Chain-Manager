@@ -34,7 +34,7 @@ const runEthStats = (app, environement) => {
              '--account-email=info@graphlinq.io',
              `--node-name=${app.ethStats.nodeName}`,
              `--server-url=${app.ethStats.serverUrl}`,
-             '--client-url=http://127.0.0.1:8544'
+             '--client-url=http://127.0.0.1:8545'
             ],
             { stdio: ['pipe', 'pipe', 'pipe', 'pipe', fs.openSync('./nodes/node1/.error.log', 'w')]}
         );
