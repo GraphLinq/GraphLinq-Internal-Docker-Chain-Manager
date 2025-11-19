@@ -14,6 +14,7 @@ const test = (app, environement) => {
         // Get additional node info
         let peersCount = 0;
         let gasPrice = null;
+        let enode = null;
         
         if (app.node1 && app.node1.status === '1') {
             try {
@@ -24,6 +25,10 @@ const test = (app, environement) => {
                 // Get gas price
                 const gasPriceData = await app.node1.ipcExec('eth.gasPrice', false);
                 gasPrice = gasPriceData.trim();
+                
+                // Get enode
+                const enodeData = await app.node1.ipcExec('admin.nodeInfo.enode', false);
+                enode = enodeData.trim().replace(/^"|"$/g, ''); // Remove quotes
             } catch (e) {
                 console.error('Error getting node info:', e);
             }
@@ -37,6 +42,7 @@ const test = (app, environement) => {
                 ipcLogs: app.node1?.ipcLogs ? app.node1?.ipcLogs : [],
                 peersCount: peersCount,
                 gasPrice: gasPrice,
+                enode: enode,
                 ... getNodeData('node1'),
 
             },

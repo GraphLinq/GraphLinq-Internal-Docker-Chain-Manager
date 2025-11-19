@@ -1,4 +1,4 @@
-version=v0.0.34
+version=v0.0.35
 docker tag docker-glq-nodemanager:$version graphlinqchain/docker-glq-nodemanager:$version
 docker push graphlinqchain/docker-glq-nodemanager:$version
 docker tag docker-glq-nodemanager:$version graphlinqchain/docker-glq-nodemanager:latest

@@ -1019,6 +1019,30 @@
                     </div>
                 </div>
 
+                <!-- Enode Card -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-title">
+                        <i class="fas fa-network-wired"></i> Node Enode
+                        <span style="font-size: 11px; font-weight: 400; color: #9ca3af; margin-left: 8px;">(Share with peers)</span>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(74, 222, 128, 0.08) 0%, rgba(74, 222, 128, 0.02) 100%); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 10px; padding: 16px; margin-top: 12px;">
+                        <div id="node-enode-display" style="word-break: break-all; font-size: 11px; line-height: 1.7; color: #4ade80; font-family: 'Fira Code', monospace;">
+                            <i class="fas fa-info-circle" style="color: #9ca3af; margin-right: 6px;"></i>
+                            <span style="color: #9ca3af;">Node is not running. Start the node to see the enode.</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 12px; align-items: center;">
+                        <button class="btn btn-primary" onclick="copyEnode()" id="copy-enode-btn" style="display: none;">
+                            <i class="fas fa-copy"></i>
+                            <span>Copy Enode</span>
+                        </button>
+                        <div id="enode-info" style="display: none; font-size: 12px; color: #9ca3af;">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="enode-ip-info"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Main Tabs Card -->
                 <div class="card" style="margin-bottom: 24px;">
                     <!-- Tab Navigation -->
@@ -1531,6 +1555,52 @@
                 node1: { staticPeers: [], trustedPeers: [] }
             };
 
+            // Function to get public IP from URL
+            function getPublicIpFromUrl() {
+                const hostname = window.location.hostname;
+                // If it's localhost or 127.0.0.1, return null (keep default)
+                if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                    return null;
+                }
+                return hostname;
+            }
+
+            // Function to replace enode IP
+            function replaceEnodeIp(enode) {
+                if (!enode) return null;
+                
+                const publicIp = getPublicIpFromUrl();
+                if (!publicIp) {
+                    return enode; // Keep original if no public IP
+                }
+                
+                // Replace 127.0.0.1 or [::] with the public IP
+                return enode.replace(/@127\.0\.0\.1:(\d+)/g, `@${publicIp}:$1`)
+                           .replace(/@\[::\]:(\d+)/g, `@${publicIp}:$1`);
+            }
+
+            // Function to copy enode to clipboard
+            async function copyEnode() {
+                const enodeDisplay = document.getElementById('node-enode-display');
+                const enodeText = enodeDisplay.textContent;
+                
+                try {
+                    await navigator.clipboard.writeText(enodeText);
+                    const copyBtn = document.getElementById('copy-enode-btn');
+                    const originalHtml = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
+                    copyBtn.style.background = 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)';
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHtml;
+                        copyBtn.style.background = '';
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy enode:', err);
+                    alert('Failed to copy enode to clipboard');
+                }
+            }
+
             async function updateDisplay(jsonData) {
 
                 let node1Status = document.getElementById('node1-status');
@@ -1581,10 +1651,44 @@
                 // Disable/enable EthStats buttons based on status
                 let ethStatsButtonStart = document.getElementById('ethStats-button-start');
                 let ethStatsButtonStop = document.getElementById('ethStats-button-stop');
-
+                
                 const isEthStatsRunning = jsonData.ethStats.status == '1';
                 ethStatsButtonStart.disabled = isEthStatsRunning;
                 ethStatsButtonStop.disabled = !isEthStatsRunning;
+
+                // Update enode display
+                let enodeDisplay = document.getElementById('node-enode-display');
+                let copyEnodeBtn = document.getElementById('copy-enode-btn');
+                let enodeInfo = document.getElementById('enode-info');
+                let enodeIpInfo = document.getElementById('enode-ip-info');
+                
+                if (jsonData.node1.enode) {
+                    const processedEnode = replaceEnodeIp(jsonData.node1.enode);
+                    const publicIp = getPublicIpFromUrl();
+                    
+                    enodeDisplay.textContent = processedEnode;
+                    copyEnodeBtn.style.display = 'inline-flex';
+                    
+                    // Show info about IP replacement
+                    if (publicIp && jsonData.node1.enode.includes('127.0.0.1')) {
+                        enodeInfo.style.display = 'block';
+                        enodeIpInfo.innerHTML = `IP automatically replaced with <strong>${publicIp}</strong> for external sharing`;
+                    } else if (publicIp) {
+                        enodeInfo.style.display = 'block';
+                        enodeIpInfo.innerHTML = `Using public IP: <strong>${publicIp}</strong>`;
+                    } else {
+                        enodeInfo.style.display = 'block';
+                        enodeIpInfo.innerHTML = 'Using local IP (127.0.0.1). Access from a public IP for external sharing.';
+                    }
+                } else if (isRunning) {
+                    enodeDisplay.innerHTML = '<i class="fas fa-spinner fa-spin" style="color: #9ca3af; margin-right: 6px;"></i><span style="color: #9ca3af;">Loading enode...</span>';
+                    copyEnodeBtn.style.display = 'none';
+                    enodeInfo.style.display = 'none';
+                } else {
+                    enodeDisplay.innerHTML = '<i class="fas fa-info-circle" style="color: #9ca3af; margin-right: 6px;"></i><span style="color: #9ca3af;">Node is not running. Start the node to see the enode.</span>';
+                    copyEnodeBtn.style.display = 'none';
+                    enodeInfo.style.display = 'none';
+                }
 
                 let inputEthStatsServerUrl = document.getElementById('ethStats-server-url');
                 if (window.localStorage.getItem('ethstats-server-url') != inputEthStatsServerUrl.value) {
