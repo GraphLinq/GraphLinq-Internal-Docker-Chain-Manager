@@ -7,10 +7,6 @@ const test = (app, environement) => {
             await app.node1.checkIsAlive();
         }
 
-        if (app.node2) {
-            await app.node2.checkIsAlive();
-        }
-
         if (app.ethStats) {
             await app.ethStats.checkIsAlive();
         }
@@ -23,13 +19,6 @@ const test = (app, environement) => {
                 ipcLogs: app.node1?.ipcLogs ? app.node1?.ipcLogs : [],
                 ... getNodeData('node1'),
 
-            },
-            node2: {
-                status: app.node2?.status ? app.node2?.status : '0',
-                mining: '0',
-                logs: app.node2?.logs ? app.node2?.logs : [],
-                ipcLogs: app.node2?.ipcLogs ? app.node2?.ipcLogs : [],
-                ... getNodeData('node2'),
             },
             ethStats: {
                 status: app.ethStats?.status ? app.ethStats?.status : '0',

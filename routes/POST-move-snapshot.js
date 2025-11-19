@@ -16,7 +16,7 @@ const moveSnapshot = (app, environement) => {
             }
 
             // Validate node names
-            const validNodes = ['node1', 'node2'];
+            const validNodes = ['node1'];
             if (!validNodes.includes(sourceNode) || !validNodes.includes(targetNode)) {
                 return res.status(400).send({ error: 'Invalid node name' });
             }

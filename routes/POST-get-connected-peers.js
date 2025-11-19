@@ -17,13 +17,6 @@ const getConnectedPeers = (app, environement) => {
                 } catch (e) {
                     console.error('Error parsing peers data:', e, peersData);
                 }
-            } else if (nodeName === 'node2' && app.node2 && app.node2.status === '1') {
-                const peersData = await app.node2.ipcExec('admin.peers', false);
-                try {
-                    peers = eval(peersData).map(peer => peer.enode);
-                } catch (e) {
-                    console.error('Error parsing peers data:', e, peersData);
-                }
             }
 
             res.send({ success: true, peers });

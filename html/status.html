@@ -264,64 +264,6 @@
                         <input id="node1-ipc-input" type="text" placeholder="admin" style="width:100%; height: 25px;margin-top: 15px;" />
                     </td>
                 </tr>
-
-                <!-- External Node -->
-
-                <tr>
-                    <td>EXTERNAL NODE STATUS</td>
-                    <td id="node2-status" class="mdc-button mdc-button--outlined customColor"></td>
-                    <td colspan="4"></td>
-                </tr>
-                <tr>
-                    <td>Current Block</td>
-                    <td id="node2-block" class="block-info">0</td>
-                    <td colspan="2">
-                        <button class="mdc-button mdc-button--raised" onclick="showPeersModal('node2')">
-                            <span class="mdc-button__label">View Peers</span>
-                        </button>
-                    </td>
-                    <td colspan="1">
-                        <button class="mdc-button mdc-button--raised" onclick="showSnapshotsModal('node2')">
-                            <span class="mdc-button__label">Snapshots</span>
-                        </button>
-                    </td>
-                    <td colspan="1">
-                        <button class="mdc-button mdc-button--raised" onclick="showRollbackModal('node2')" style="background-color: #ff9800;">
-                            <span class="mdc-button__label">⚠️ Rollback</span>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="1">Node</td>
-                    <td colspan="1"><button id="node2-button-start" class="mdc-button mdc-button--raised" onclick="startNode2(this)">Start</button></td>
-                    <td colspan="1"><button id="node2-button-stop" class="mdc-button mdc-button--raised" onclick="stopNode2(this)">Stop</button></td>
-                    <td colspan="3"></td>
-                </tr>
-                <tr>
-                    <td>RPC EXPOSED PORT</td>
-                    <td class="mdc-button mdc-button--outlined customColor">8551</td>
-                </tr>
-                <tr>
-                    <td>HTTP EXPOSED PORT</td>
-                    <td class="mdc-button mdc-button--outlined customColor">8545</td>
-                </tr>
-                <tr>
-                    <td>Address</td>
-                    <td class="customColor">$node2Address</td>
-                </tr>
-                <tr>
-                    <td colspan="3">External Node Logs</td>
-                    <td colspan="3">IPC Console</td>
-                </tr>
-                <tr style="width:100%; height: 200px;">
-                    <td colspan="3" style="width:50%; height: 200px;position: relative;">
-                        <textarea id="node2-logs" style="width:100%; height: 200px;" readonly></textarea>
-                    </td>
-                    <td colspan="3" style="width:50%; height: 200px;">
-                        <textarea id="node2-ipc-logs" style="width:100%; height: 160px;" readonly></textarea>
-                        <input id="node2-ipc-input" type="text" placeholder="admin" style="width:100%; height: 25px;margin-top: 15px;" />
-                    </td>
-                </tr>
             </table>
         </div>
 
@@ -502,34 +444,6 @@
                 <tr style="width:100%; height: 2px;background-color: black;">
                     <td><div></div></td>
                 </tr>
-                <!-- <tr style="width:100%; height: 100px;">
-                    <td style="width:100%; height: 100px;">
-                        <h3>NODE 2 (Exposed Node):</h3>
-                        <table style="width:100%;">
-                            <tr style="width:100%;">
-                                <td>
-                                    <input id="node2PrivateKey" type="text" placeholder="privateKey" style="width:100%; height: 25px;margin-top: 2px;" />
-                                </td>
-                                <td>
-                                    <input id="node2Password" type="text" placeholder="new password" style="width:100%; height: 25px;margin-top: 2px;" />
-                                </td>
-                            </tr>
-                            <tr style="width:100%;">
-                                <td style="text-align: center;" colspan="2">
-                                    <button onclick="generateKeyStore(2)">Generate KeyStore</button>
-                                </td>
-                            </tr>
-                            <tr style="width:100%;">
-                                <td style="text-align: center;" colspan="2">OR</td>
-                            </tr>
-                            <tr style="width:100%;">
-                                <td colspan="2">
-                                    <input id="node2KeyStore" type="text" placeholder="keystore for Miner" style="width:100%; height: 25px;margin-top: 2px;" />
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr> -->
 
                 <tr style="width:100%; height: 100px;">
                     <td style="width:100%; height: 100px;">
@@ -606,21 +520,13 @@
                 }
             });
 
-            document.getElementById('node2-ipc-input')
-            .addEventListener('keyup', function onEvent(e) {
-                if (e.keyCode === 13) {
-                    execNode2IpcCommand();
-                }
-            });
-
             function scrollLogToBottom(element) {
                 element.scrollTop = element.scrollHeight;
             }
 
             // Store current peer data globally
             let currentPeerData = {
-                node1: { staticPeers: [], trustedPeers: [] },
-                node2: { staticPeers: [], trustedPeers: [] }
+                node1: { staticPeers: [], trustedPeers: [] }
             };
 
             async function updateDisplay(jsonData) {
@@ -633,13 +539,6 @@
                 let node1ButtonStop = document.getElementById('node1-button-stop');
                 let node1ButtonMinerStart = document.getElementById('node1-button-miner-start');
                 let node1ButtonMinerStop = document.getElementById('node1-button-miner-stop');
-
-                let node2Status = document.getElementById('node2-status');
-                let node2Block = document.getElementById('node2-block');
-                let node2Logs = document.getElementById('node2-logs');
-                let node2ipcLogs = document.getElementById('node2-ipc-logs');
-                let node2ButtonStart = document.getElementById('node2-button-start');
-                let node2ButtonStop = document.getElementById('node2-button-stop');
 
                 node1Status.innerText = jsonData.node1.status == '1' ? 'RUNNING' : 'STOPPED';
                 node1Block.innerText = jsonData.node1.currentBlock || 0;
@@ -656,24 +555,9 @@
                 node1ButtonMinerStart.disabled = jsonData.node1.mining == '1';
                 node1ButtonMinerStop.disabled = jsonData.node1.mining == '0';
 
-                node2Status.innerText = jsonData.node2.status == '1' ? 'RUNNING' : 'STOPPED';
-                node2Block.innerText = jsonData.node2.currentBlock || 0;
-                if (compareIt(node2Logs.innerHTML, jsonData.node2.logs.join('\n'))) {
-                    node2Logs.innerHTML = jsonData.node2.logs.join('\n');
-                    scrollLogToBottom(node2Logs);
-                }
-                if (compareIt(node2ipcLogs.innerHTML, jsonData.node2.ipcLogs.join('\n'))) {
-                    node2ipcLogs.innerHTML = jsonData.node2.ipcLogs.join('\n');
-                    scrollLogToBottom(node2ipcLogs);
-                }
-                node2ButtonStart.disabled = jsonData.node2.status == '1';
-                node2ButtonStop.disabled = jsonData.node2.status == '0';
-
                 // Store peer data
                 currentPeerData.node1.staticPeers = jsonData.node1.staticPeers || [];
                 currentPeerData.node1.trustedPeers = jsonData.node1.trustedPeers || [];
-                currentPeerData.node2.staticPeers = jsonData.node2.staticPeers || [];
-                currentPeerData.node2.trustedPeers = jsonData.node2.trustedPeers || [];
 
                 let ethStatsButtonStart = document.getElementById('ethStats-button-start');
                 let ethStatsButtonStop = document.getElementById('ethStats-button-stop');
@@ -721,20 +605,6 @@
                 let jsonResult = await result.json();
             }
 
-            async function startNode2(btn) {
-                btn.disabled = true;
-
-                let result = await fetch('/run-external-node', {
-                        method: 'POST',
-                        headers: {
-                            'Access-Code': password,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({})
-                    });
-                let jsonResult = await result.json();
-            }
-
             async function startEthStats(btn) {
                 btn.disabled = true;
 
@@ -758,18 +628,6 @@
             async function stopNode1(btn) {
                 btn.disabled = true;
                 let result = await fetch('/node1-kill', {
-                    method: 'POST',
-                    headers: {
-                        'Access-Code': password,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({})
-                });
-            }
-
-            async function stopNode2(btn) {
-                btn.disabled = true;
-                let result = await fetch('/node2-kill', {
                     method: 'POST',
                     headers: {
                         'Access-Code': password,
@@ -846,34 +704,6 @@
                 if (compareIt(node1ipcLogs.innerHTML, jsonData.join('\n'))) {
                     node1ipcLogs.innerHTML = jsonData.join('\n');
                     scrollLogToBottom(node1ipcLogs);
-                }
-            }
-
-            async function execNode2IpcCommand() {
-                const node2IpcInput = document.getElementById('node2-ipc-input');
-                const node2ipcLogs = document.getElementById('node2-ipc-logs');
-                const value = node2IpcInput.value;
-
-                node2IpcInput.disabled = true;
-
-                let result = await fetch('/node2-ipc-command', {
-                        method: 'POST',
-                        headers: {
-                            'Access-Code': password,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            command: value
-                        })
-                    });
-                let jsonData = await result.json();
-
-                node2IpcInput.value = '';
-                node2IpcInput.disabled = false;
-                node2IpcInput.focus();
-                if (compareIt(node2ipcLogs.innerHTML, jsonData.join('\n'))) {
-                    node2ipcLogs.innerHTML = jsonData.join('\n');
-                    scrollLogToBottom(node2ipcLogs);
                 }
             }
 
@@ -1480,9 +1310,6 @@
                                     <button class="btn-small" onclick="applySnapshotConfirm('${nodeName}', '${snapshot.filename}')" style="background: #ff9800;">
                                         ⚡ Apply
                                     </button>
-                                    <button class="btn-small" onclick="moveSnapshotConfirm('${nodeName}', '${snapshot.filename}')" style="background: #9C27B0;">
-                                        🔄 Move to ${nodeName === 'node1' ? 'Node2' : 'Node1'}
-                                    </button>
                                     <button class="btn-small" onclick="downloadSnapshot('${nodeName}', '${snapshot.filename}')">
                                         📥 Download
                                     </button>
@@ -1569,33 +1396,8 @@
             }
 
             async function moveSnapshotConfirm(sourceNode, filename) {
-                const targetNode = sourceNode === 'node1' ? 'node2' : 'node1';
-                
-                if (!confirm(`🔄 Move snapshot to ${targetNode.toUpperCase()}?\n\nSnapshot: ${filename}\n\nThis will move the snapshot from ${sourceNode.toUpperCase()} to ${targetNode.toUpperCase()}.\n\nDo you want to continue?`)) {
-                    return;
-                }
-                
-                try {
-                    let result = await fetch('/move-snapshot', {
-                        method: 'POST',
-                        headers: {
-                            'Access-Code': password,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ sourceNode, targetNode, filename })
-                    });
-                    let data = await result.json();
-                    
-                    if (data.success) {
-                        alert(`Snapshot moved successfully to ${targetNode.toUpperCase()}!`);
-                        await loadSnapshotsList(sourceNode);
-                    } else {
-                        alert('Error moving snapshot: ' + (data.error || 'Unknown error'));
-                    }
-                } catch (error) {
-                    console.error('Error moving snapshot:', error);
-                    alert('Error moving snapshot: ' + error.message);
-                }
+                alert('Move snapshot feature is only available with multiple nodes.');
+                return;
             }
 
             async function uploadSnapshot(event) {

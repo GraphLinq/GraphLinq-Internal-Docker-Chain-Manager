@@ -54,10 +54,6 @@ const applySnapshot = (app, environement) => {
                 console.log('Stopping node1 before applying snapshot...');
                 await app.node1.kill();
                 wasRunning = true;
-            } else if (nodeName === 'node2' && app.node2 && app.node2.status === '1') {
-                console.log('Stopping node2 before applying snapshot...');
-                await app.node2.kill();
-                wasRunning = true;
             }
 
             // Wait a bit to ensure node is fully stopped

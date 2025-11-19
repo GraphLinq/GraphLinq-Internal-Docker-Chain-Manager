@@ -25,10 +25,6 @@ const uploadTrustedPeers = (app, environement) => {
                 for (let peerEnode of trustedPeers) {
                     await app.node1.ipcExec(`admin.addTrustedPeer(\\"${peerEnode.trim()}\\")`, false);
                 }
-            } else if (nodeName === 'node2' && app.node2 && app.node2.status === '1') {
-                for (let peerEnode of trustedPeers) {
-                    await app.node2.ipcExec(`admin.addTrustedPeer(\\"${peerEnode.trim()}\\")`, false);
-                }
             }
 
             res.send({ success: true, trustedPeers });

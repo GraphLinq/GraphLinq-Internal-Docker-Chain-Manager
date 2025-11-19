@@ -36,8 +36,6 @@ const status = (app, environement) => {
         if (setup) {
             let node1Address = fs.readFileSync('./nodes/node1/id').toString();
             htmlContent = htmlContent.replace(/\$node1Address/, node1Address);
-            let node2Address = fs.readFileSync('./nodes/node2/id').toString();
-            htmlContent = htmlContent.replace(/\$node2Address/, node2Address);
         }
 
         res.send(htmlContent);

@@ -25,10 +25,6 @@ const uploadStaticPeers = (app, environement) => {
                 for (let peerEnode of staticPeers) {
                     await app.node1.ipcExec(`admin.addPeer(\\"${peerEnode.trim()}\\")`, false);
                 }
-            } else if (nodeName === 'node2' && app.node2 && app.node2.status === '1') {
-                for (let peerEnode of staticPeers) {
-                    await app.node2.ipcExec(`admin.addPeer(\\"${peerEnode.trim()}\\")`, false);
-                }
             }
 
             res.send({ success: true, staticPeers });

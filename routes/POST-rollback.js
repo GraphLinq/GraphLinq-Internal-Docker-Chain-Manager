@@ -14,10 +14,10 @@ const rollback = (app, environement) => {
         }
 
         // Validate node name
-        if (nodeName !== 'node1' && nodeName !== 'node2') {
+        if (nodeName !== 'node1') {
             return res.status(400).json({ 
                 success: false, 
-                error: 'Invalid node name. Must be node1 or node2' 
+                error: 'Invalid node name. Must be node1' 
             });
         }
 

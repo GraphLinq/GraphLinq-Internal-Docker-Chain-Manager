@@ -24,8 +24,6 @@ const removeTrustedPeer = (app, environement) => {
             // Remove peer via IPC if node is running
             if (nodeName === 'node1' && app.node1 && app.node1.status === '1') {
                 await app.node1.ipcExec(`admin.removeTrustedPeer(\\"${peerEnode.trim()}\\")`, false);
-            } else if (nodeName === 'node2' && app.node2 && app.node2.status === '1') {
-                await app.node2.ipcExec(`admin.removeTrustedPeer(\\"${peerEnode.trim()}\\")`, false);
             }
 
             res.send({ success: true, trustedNodes });

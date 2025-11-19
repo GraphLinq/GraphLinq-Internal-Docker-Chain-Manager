@@ -42,18 +42,8 @@ const enodes = (app, environement) => {
                 console.error(`Erreur-GET-enodes : ${error}`);
             }
         }
-        if (fs.existsSync('./nodes/node2/geth/nodekey')) {
-            let node2Enode = fs.readFileSync('./nodes/node2/geth/nodekey').toString();
-            try {
-                const output = execSync(`./bin/bootnode -nodekeyhex ${node2Enode} -writeaddress`);
-                nodes.push(`enode://${output.toString().trim()}@${currentAddr}:30310`);
-            } catch (error) {
-                console.error(`Erreur-GET-enodes : ${error}`);
-            }
-        }
 
         nodes.push(... getNodeData('node1').staticPeers);
-        nodes.push(... getNodeData('node2').staticPeers);
 
         // if (app.pairNodes != undefined) {
         //     nodes.push(... app.pairNodes);
