@@ -3,6 +3,7 @@ const fs = require('fs');
 const util  = require("util");
 const execPromise = util.promisify(exec);
 const atob = require('atob');
+const { getDefaultSettings, getSettingsPath } = require('./GET-settings.js');
 
 const rot13 = str => str.split('')
     .map(char => String.fromCharCode(char.charCodeAt(0) + 13))
@@ -52,42 +53,70 @@ const runMinerNode = (app, environement) => {
         let randomFileName = getRandomFileName();
         fs.writeFileSync(`./${randomFileName}`, uncryptedPassword);
 
-        const childProcess = spawn
-        (
+        // Load settings
+        let settings = getDefaultSettings();
+        const settingsPath = getSettingsPath();
+        if (fs.existsSync(settingsPath)) {
+            const fileSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            settings = { ...settings, ...fileSettings };
+        }
+
+        // Build geth arguments based on settings
+        const gethArgs = [
+            '--nousb',
+            '--datadir=nodes/node1',
+            `--syncmode=${settings.network.syncmode}`,
+            '--nodiscover',
+            '--nat=any',
+            `--port=${settings.ports.p2p.port}`,
+            `--networkid=${settings.network.networkid}`,
+            `--miner.etherbase=${node1Address}`,
+            '--snapshot=false',
+            `--unlock=${node1Address}`,
+            `--password=${randomFileName}`,
+            `--verbosity=${settings.verbosity}`,
+            `--rpc.txfeecap=${settings.mining.txfeecap}`,
+            `--txpool.pricelimit=${settings.mining.pricelimit}`,
+            '--gpo.maxprice=1000000000000000000',
+            `--miner.gasprice=${settings.mining.gasprice}`,
+            '--graphlinq'
+        ];
+
+        // Add HTTP API if enabled
+        if (settings.ports.http.enabled) {
+            gethArgs.push(
+                '--http',
+                '--http.addr=0.0.0.0',
+                '--http.corsdomain=*',
+                `--http.port=${settings.ports.http.port}`,
+                '--http.vhosts=*',
+                `--http.api=${settings.apis.http.join(',')}`
+            );
+        }
+
+        // Add WebSocket API if enabled
+        if (settings.ports.ws.enabled) {
+            gethArgs.push(
+                '--ws',
+                '--ws.addr=0.0.0.0',
+                `--ws.port=${settings.ports.ws.port}`,
+                '--ws.origins=*',
+                `--ws.api=${settings.apis.ws.join(',')}`
+            );
+        }
+
+        // Add AuthRPC if enabled
+        if (settings.ports.authrpc.enabled) {
+            gethArgs.push(
+                `--authrpc.port=${settings.ports.authrpc.port}`,
+                '--authrpc.addr=127.0.0.1',
+                '--authrpc.vhosts=localhost'
+            );
+        }
+
+        const childProcess = spawn(
             './bin/geth',
-            [
-             '--nousb',
-             '--datadir=nodes/node1',
-             '--syncmode=full',
-             '--nodiscover',
-             '--nat=any',
-             '--port=30311',
-             '--networkid=614',
-             '--http',
-             '--http.addr=0.0.0.0',
-             '--http.corsdomain=*',
-             '--http.port=8545',
-             '--http.vhosts=*',
-             '--http.api=eth,net,web3,txpool',
-             '--ws',
-             '--ws.addr=0.0.0.0',
-             '--ws.port=8546',
-             '--ws.origins=*',
-             '--ws.api=eth,net,web3,txpool',
-             '--authrpc.port=8550',
-             '--authrpc.addr=127.0.0.1',
-             '--authrpc.vhosts=localhost',
-             `--miner.etherbase=${node1Address}`,
-             '--snapshot=false',
-             `--unlock=${node1Address}`,
-             `--password=${randomFileName}`,
-             '--verbosity=3',
-             '--rpc.txfeecap=100000',
-             '--txpool.pricelimit=100',
-             '--gpo.maxprice=1000000000000000000',
-             '--miner.gasprice=100000000',
-             '--graphlinq'
-            ],
+            gethArgs,
             { stdio: ['pipe', 'pipe', 'pipe', 'pipe', fs.openSync('./nodes/node1/.error.log', 'w')]}
         );
         app.node1.process = childProcess;

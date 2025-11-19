@@ -189,7 +189,10 @@
 
                 <tr>
                     <td colspan="6" style="color:white;text-align: center;font-size: x-small;">
-                        <img height="50px" src="logo.png"/> <span>v0.0.14</span>
+                        <img height="50px" src="logo.png"/> <span>v0.0.15</span>
+                        <button onclick="showSettingsModal()" style="position: absolute; left: 20px; top: 20px; padding: 8px 16px; background-color: #2774ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                            ⚙️ Settings
+                        </button>
                         <button onclick="logout()" style="position: absolute; right: 20px; top: 20px; padding: 8px 16px; background-color: #ff4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
                             🚪 Logout
                         </button>
@@ -197,24 +200,30 @@
                 </tr>
 
                 <tr>
-                    <td>INTERNAL NODE STATUS</td>
+                    <td>NODE STATUS</td>
                     <td id="node1-status" class="mdc-button mdc-button--outlined customColor"></td>
                     <td colspan="4"></td>
                 </tr>
                 <tr>
                     <td>Current Block</td>
                     <td id="node1-block" class="block-info">0</td>
+                    <td>Peers Connected</td>
+                    <td id="node1-peers-count" class="block-info">0</td>
+                    <td>Gas Price</td>
+                    <td id="node1-gas-price" class="block-info">-</td>
+                </tr>
+                <tr>
                     <td colspan="2">
                         <button class="mdc-button mdc-button--raised" onclick="showPeersModal('node1')">
-                            <span class="mdc-button__label">View Peers</span>
+                            <span class="mdc-button__label">👥 View Peers</span>
                         </button>
                     </td>
-                    <td colspan="1">
+                    <td colspan="2">
                         <button class="mdc-button mdc-button--raised" onclick="showSnapshotsModal('node1')">
-                            <span class="mdc-button__label">Snapshots</span>
+                            <span class="mdc-button__label">📸 Snapshots</span>
                         </button>
                     </td>
-                    <td colspan="1">
+                    <td colspan="2">
                         <button class="mdc-button mdc-button--raised" onclick="showRollbackModal('node1')" style="background-color: #ff9800;">
                             <span class="mdc-button__label">⚠️ Rollback</span>
                         </button>
@@ -359,6 +368,96 @@
                     <div id="snapshots-list">
                         <p>Loading...</p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeSettingsModal()">&times;</span>
+                <h2>⚙️ Node Settings</h2>
+                
+                <div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #2774ff;">Log Level</h3>
+                    <div style="margin: 15px 0;">
+                        <label style="display: block; margin-bottom: 5px;">Verbosity (0-5):</label>
+                        <input type="number" id="setting-verbosity" min="0" max="5" value="3" style="width: 100px; padding: 8px;">
+                        <span style="margin-left: 10px; color: #aaa; font-size: 12px;">Higher = More detailed logs</span>
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #2774ff;">Network Ports</h3>
+                    
+                    <div style="margin: 15px 0; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="setting-http-enabled" style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer;">
+                            <span style="flex: 1;"><strong>HTTP RPC</strong></span>
+                        </label>
+                        <div style="margin-left: 30px; margin-top: 10px;">
+                            <label>Port: <input type="number" id="setting-http-port" value="8545" style="width: 100px; padding: 5px; margin-left: 10px;"></label>
+                        </div>
+                    </div>
+
+                    <div style="margin: 15px 0; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="setting-ws-enabled" style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer;">
+                            <span style="flex: 1;"><strong>WebSocket RPC</strong></span>
+                        </label>
+                        <div style="margin-left: 30px; margin-top: 10px;">
+                            <label>Port: <input type="number" id="setting-ws-port" value="8546" style="width: 100px; padding: 5px; margin-left: 10px;"></label>
+                        </div>
+                    </div>
+
+                    <div style="margin: 15px 0; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="setting-authrpc-enabled" style="margin-right: 10px; width: 20px; height: 20px; cursor: pointer;">
+                            <span style="flex: 1;"><strong>Auth RPC</strong></span>
+                        </label>
+                        <div style="margin-left: 30px; margin-top: 10px;">
+                            <label>Port: <input type="number" id="setting-authrpc-port" value="8551" style="width: 100px; padding: 5px; margin-left: 10px;"></label>
+                        </div>
+                    </div>
+
+                    <div style="margin: 15px 0; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                        <label style="display: block; margin-bottom: 5px;"><strong>P2P Port:</strong></label>
+                        <input type="number" id="setting-p2p-port" value="30311" style="width: 100px; padding: 5px;">
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #2774ff;">Mining Settings</h3>
+                    
+                    <div style="margin: 15px 0;">
+                        <label style="display: block; margin-bottom: 5px;">Gas Price (wei):</label>
+                        <input type="text" id="setting-gasprice" value="100000000" style="width: 200px; padding: 8px;">
+                    </div>
+
+                    <div style="margin: 15px 0;">
+                        <label style="display: block; margin-bottom: 5px;">TX Fee Cap:</label>
+                        <input type="text" id="setting-txfeecap" value="100000" style="width: 200px; padding: 8px;">
+                    </div>
+
+                    <div style="margin: 15px 0;">
+                        <label style="display: block; margin-bottom: 5px;">TX Pool Price Limit:</label>
+                        <input type="text" id="setting-pricelimit" value="100" style="width: 200px; padding: 8px;">
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 152, 0, 0.1); border: 2px solid #ff9800; border-radius: 8px;">
+                    <p style="margin: 0; color: #ffaa00;">
+                        ⚠️ <strong>Note:</strong> Changing settings requires restarting the node to take effect.
+                    </p>
+                </div>
+
+                <div style="margin: 20px 0; text-align: center;">
+                    <button class="btn-file" onclick="saveSettings()" style="background: #4CAF50; font-size: 16px; padding: 15px 30px;">
+                        💾 Save Settings
+                    </button>
+                    <button class="btn-file secondary" onclick="closeSettingsModal()" style="background: #666; margin-left: 10px; font-size: 16px; padding: 15px 30px;">
+                        ❌ Cancel
+                    </button>
                 </div>
             </div>
         </div>
@@ -533,6 +632,8 @@
 
                 let node1Status = document.getElementById('node1-status');
                 let node1Block = document.getElementById('node1-block');
+                let node1PeersCount = document.getElementById('node1-peers-count');
+                let node1GasPrice = document.getElementById('node1-gas-price');
                 let node1Logs = document.getElementById('node1-logs');
                 let node1ipcLogs = document.getElementById('node1-ipc-logs');
                 let node1ButtonStart = document.getElementById('node1-button-start');
@@ -542,6 +643,8 @@
 
                 node1Status.innerText = jsonData.node1.status == '1' ? 'RUNNING' : 'STOPPED';
                 node1Block.innerText = jsonData.node1.currentBlock || 0;
+                node1PeersCount.innerText = jsonData.node1.peersCount || 0;
+                node1GasPrice.innerText = jsonData.node1.gasPrice ? formatGasPrice(jsonData.node1.gasPrice) : '-';
                 if (compareIt(node1Logs.innerHTML, jsonData.node1.logs.join('\n'))) {
                     node1Logs.innerHTML = jsonData.node1.logs.join('\n');
                     scrollLogToBottom(node1Logs);
@@ -1485,14 +1588,134 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
             }
 
+            function formatGasPrice(weiString) {
+                try {
+                    const wei = BigInt(weiString);
+                    const gwei = Number(wei) / 1000000000;
+                    return gwei.toFixed(2) + ' Gwei';
+                } catch (e) {
+                    return weiString;
+                }
+            }
+
+            // Settings Modal Functions
+            async function showSettingsModal() {
+                document.getElementById('settingsModal').style.display = 'block';
+                await loadSettings();
+            }
+
+            function closeSettingsModal() {
+                document.getElementById('settingsModal').style.display = 'none';
+            }
+
+            async function loadSettings() {
+                try {
+                    let result = await fetch('/settings', {
+                        method: 'GET',
+                        headers: {
+                            'Access-Code': password
+                        }
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        const settings = data.settings;
+                        
+                        // Load verbosity
+                        document.getElementById('setting-verbosity').value = settings.verbosity || 3;
+                        
+                        // Load ports
+                        document.getElementById('setting-http-enabled').checked = settings.ports.http.enabled;
+                        document.getElementById('setting-http-port').value = settings.ports.http.port;
+                        
+                        document.getElementById('setting-ws-enabled').checked = settings.ports.ws.enabled;
+                        document.getElementById('setting-ws-port').value = settings.ports.ws.port;
+                        
+                        document.getElementById('setting-authrpc-enabled').checked = settings.ports.authrpc.enabled;
+                        document.getElementById('setting-authrpc-port').value = settings.ports.authrpc.port;
+                        
+                        document.getElementById('setting-p2p-port').value = settings.ports.p2p.port;
+                        
+                        // Load mining settings
+                        document.getElementById('setting-gasprice').value = settings.mining.gasprice;
+                        document.getElementById('setting-txfeecap').value = settings.mining.txfeecap;
+                        document.getElementById('setting-pricelimit').value = settings.mining.pricelimit;
+                    }
+                } catch (error) {
+                    console.error('Error loading settings:', error);
+                    alert('Error loading settings: ' + error.message);
+                }
+            }
+
+            async function saveSettings() {
+                try {
+                    const settings = {
+                        verbosity: parseInt(document.getElementById('setting-verbosity').value),
+                        ports: {
+                            http: {
+                                enabled: document.getElementById('setting-http-enabled').checked,
+                                port: parseInt(document.getElementById('setting-http-port').value)
+                            },
+                            ws: {
+                                enabled: document.getElementById('setting-ws-enabled').checked,
+                                port: parseInt(document.getElementById('setting-ws-port').value)
+                            },
+                            authrpc: {
+                                enabled: document.getElementById('setting-authrpc-enabled').checked,
+                                port: parseInt(document.getElementById('setting-authrpc-port').value)
+                            },
+                            p2p: {
+                                port: parseInt(document.getElementById('setting-p2p-port').value)
+                            }
+                        },
+                        apis: {
+                            http: ['eth', 'miner', 'net', 'txpool', 'web3', 'debug'],
+                            ws: ['eth', 'net', 'web3']
+                        },
+                        mining: {
+                            gasprice: document.getElementById('setting-gasprice').value,
+                            txfeecap: document.getElementById('setting-txfeecap').value,
+                            pricelimit: document.getElementById('setting-pricelimit').value
+                        },
+                        network: {
+                            syncmode: 'full',
+                            networkid: 614
+                        }
+                    };
+
+                    let result = await fetch('/save-settings', {
+                        method: 'POST',
+                        headers: {
+                            'Access-Code': password,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ settings })
+                    });
+                    let data = await result.json();
+                    
+                    if (data.success) {
+                        alert('✅ Settings saved successfully!\n\nPlease restart the node for changes to take effect.');
+                        closeSettingsModal();
+                    } else {
+                        alert('Error saving settings: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                    alert('Error saving settings: ' + error.message);
+                }
+            }
+
             // Close modal when clicking outside
             window.onclick = function(event) {
                 const peersModal = document.getElementById('peersModal');
                 const snapshotsModal = document.getElementById('snapshotsModal');
+                const settingsModal = document.getElementById('settingsModal');
                 if (event.target == peersModal) {
                     closePeersModal();
                 } else if (event.target == snapshotsModal) {
                     closeSnapshotsModal();
+                } else if (event.target == settingsModal) {
+                    closeSettingsModal();
                 }
             }
 
